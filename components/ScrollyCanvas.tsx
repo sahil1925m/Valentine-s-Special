@@ -1,0 +1,130 @@
+"use client";
+
+import React from "react";
+import { motion, useScroll, useTransform, useSpring, MotionValue } from "framer-motion";
+import { Slide, ThemeType } from "@/lib/types";
+
+interface ScrollyCanvasProps {
+    slides: Slide[];
+    theme?: ThemeType;
+}
+
+// Liquid Mask Reveal Slide - No background (uses global AnimatedBackground)
+const LiquidSlide = ({
+    slide,
+    index,
+    scrollYProgress,
+    totalSlides,
+}: {
+    slide: Slide;
+    index: number;
+    scrollYProgress: MotionValue<number>;
+    totalSlides: number;
+}) => {
+    const segmentSize = 1 / totalSlides;
+    const start = index * segmentSize;
+    const middle = start + segmentSize * 0.5;
+    const end = start + segmentSize;
+
+    const opacity = useTransform(
+        scrollYProgress,
+        [start, start + 0.02, middle, end - 0.02, end],
+        [0, 1, 1, 1, 0]
+    );
+    const scale = useTransform(
+        scrollYProgress,
+        [start, middle, end],
+        [0.95, 1, 1.1]
+    );
+    const blur = useTransform(
+        scrollYProgress,
+        [start, middle, end],
+        [0, 0, 8]
+    );
+
+    // Clip path for liquid reveal
+    const clipProgress = useTransform(
+        scrollYProgress,
+        [Math.max(0, start - segmentSize * 0.2), start],
+        [0, 150]
+    );
+
+    return (
+        <motion.div
+            className="fixed inset-0 flex items-center justify-center z-10"
+            style={{ opacity }}
+        >
+            <motion.div
+                className="relative w-[88vw] h-[65vh] md:w-[70vw] md:h-[75vh] max-w-5xl"
+                style={{
+                    scale,
+                    filter: useTransform(blur, (v) => `blur(${v}px)`),
+                    clipPath: index === 0
+                        ? "circle(150% at center)"
+                        : useTransform(clipProgress, (v) => `circle(${Math.max(v, 0)}% at center)`),
+                }}
+            >
+                {/* The Image */}
+                <div className="w-full h-full rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.6)] border border-white/10">
+                    <img
+                        src={slide.image}
+                        alt="Memory"
+                        className="w-full h-full object-cover"
+                        loading="eager"
+                    />
+                </div>
+
+                {/* Text Caption */}
+                <div
+                    className="absolute bottom-0 left-0 right-0 p-6 md:p-10 rounded-b-2xl"
+                    style={{
+                        background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)",
+                    }}
+                >
+                    <p
+                        className="text-xl md:text-3xl lg:text-4xl font-serif text-white text-center"
+                        style={{
+                            fontFamily: "'Playfair Display', Georgia, serif",
+                            textShadow: "0 2px 20px rgba(0,0,0,0.9), 0 0 40px rgba(255,105,180,0.3)",
+                        }}
+                    >
+                        {slide.text}
+                    </p>
+                </div>
+            </motion.div>
+        </motion.div>
+    );
+};
+
+export function ScrollyCanvas({ slides }: ScrollyCanvasProps) {
+    const { scrollYProgress } = useScroll();
+
+    const smoothProgress = useSpring(scrollYProgress, {
+        stiffness: 100,
+        damping: 30,
+        restDelta: 0.001,
+    });
+
+    return (
+        <div className="fixed inset-0 z-10 overflow-hidden pointer-events-none">
+            {/* Images only - background is global */}
+            {slides.map((slide, index) => (
+                <LiquidSlide
+                    key={slide.id}
+                    slide={slide}
+                    index={index}
+                    scrollYProgress={smoothProgress}
+                    totalSlides={slides.length}
+                />
+            ))}
+
+            {/* Soft vignette */}
+            <div
+                className="fixed inset-0 pointer-events-none z-20"
+                style={{
+                    background: "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%)",
+                }}
+            />
+        </div>
+    );
+}
