@@ -54,7 +54,7 @@ export function ProposalViewer({
             </audio>
 
             {/* Section 1: The Memory Tunnel (Scrollytelling with Images) */}
-            <div className="relative" style={{ height: `${(slides.length + 1) * 100}vh` }}>
+            <div className="relative" style={{ height: `${(slides.length + 2) * 100}vh` }}>
                 {/* Fixed Image Layer */}
                 <ScrollyCanvas slides={slides} theme={theme} />
 

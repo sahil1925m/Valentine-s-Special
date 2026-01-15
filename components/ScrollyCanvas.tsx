@@ -9,7 +9,7 @@ interface ScrollyCanvasProps {
     theme?: ThemeType;
 }
 
-// Liquid Mask Reveal Slide - No background (uses global AnimatedBackground)
+// Liquid Mask Reveal Slide
 const LiquidSlide = ({
     slide,
     index,
@@ -21,7 +21,9 @@ const LiquidSlide = ({
     scrollYProgress: MotionValue<number>;
     totalSlides: number;
 }) => {
-    const segmentSize = 1 / totalSlides;
+    // Images use only 85% of scroll, leaving 15% buffer before next section
+    const usableRange = 0.85;
+    const segmentSize = usableRange / totalSlides;
     const start = index * segmentSize;
     const middle = start + segmentSize * 0.5;
     const end = start + segmentSize;
@@ -96,6 +98,28 @@ const LiquidSlide = ({
     );
 };
 
+// Master fade out for entire canvas when approaching end
+const CanvasFadeOut = ({
+    scrollYProgress,
+    children,
+}: {
+    scrollYProgress: MotionValue<number>;
+    children: React.ReactNode;
+}) => {
+    // Fade out everything after 85% scroll
+    const canvasOpacity = useTransform(
+        scrollYProgress,
+        [0.80, 0.90, 1.0],
+        [1, 0, 0]
+    );
+
+    return (
+        <motion.div style={{ opacity: canvasOpacity }}>
+            {children}
+        </motion.div>
+    );
+};
+
 export function ScrollyCanvas({ slides }: ScrollyCanvasProps) {
     const { scrollYProgress } = useScroll();
 
@@ -106,25 +130,27 @@ export function ScrollyCanvas({ slides }: ScrollyCanvasProps) {
     });
 
     return (
-        <div className="fixed inset-0 z-10 overflow-hidden pointer-events-none">
-            {/* Images only - background is global */}
-            {slides.map((slide, index) => (
-                <LiquidSlide
-                    key={slide.id}
-                    slide={slide}
-                    index={index}
-                    scrollYProgress={smoothProgress}
-                    totalSlides={slides.length}
-                />
-            ))}
+        <CanvasFadeOut scrollYProgress={smoothProgress}>
+            <div className="fixed inset-0 z-10 overflow-hidden pointer-events-none">
+                {/* Images only - background is global */}
+                {slides.map((slide, index) => (
+                    <LiquidSlide
+                        key={slide.id}
+                        slide={slide}
+                        index={index}
+                        scrollYProgress={smoothProgress}
+                        totalSlides={slides.length}
+                    />
+                ))}
 
-            {/* Soft vignette */}
-            <div
-                className="fixed inset-0 pointer-events-none z-20"
-                style={{
-                    background: "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%)",
-                }}
-            />
-        </div>
+                {/* Soft vignette */}
+                <div
+                    className="fixed inset-0 pointer-events-none z-20"
+                    style={{
+                        background: "radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.5) 100%)",
+                    }}
+                />
+            </div>
+        </CanvasFadeOut>
     );
 }
