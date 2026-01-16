@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { supabase, ProposalRecord, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase, ProposalRecord, checkSupabaseConfigured } from "@/lib/supabase";
 import { ProposalViewer } from "./ProposalViewer";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -19,7 +19,16 @@ export default function ProposalPage() {
 
     useEffect(() => {
         async function fetchProposal() {
-            if (!id || !isSupabaseConfigured()) {
+            if (!id) {
+                setError(true);
+                setLoading(false);
+                return;
+            }
+
+            // Wait for Supabase config to load (it fetches from /api/config)
+            const isConfigured = await checkSupabaseConfigured();
+            if (!isConfigured) {
+                console.error("Supabase not configured");
                 setError(true);
                 setLoading(false);
                 return;
@@ -32,6 +41,7 @@ export default function ProposalPage() {
                 .single();
 
             if (fetchError || !data) {
+                console.error("Error fetching proposal:", fetchError);
                 setError(true);
             } else {
                 setProposal(data as ProposalRecord);
