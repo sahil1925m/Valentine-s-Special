@@ -5,7 +5,7 @@ import Tilt from "react-parallax-tilt";
 import { QRCodeSVG } from "qrcode.react";
 import { motion } from "framer-motion";
 import { Heart, Plane, Calendar, Download, Check } from "lucide-react";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
 
 interface SuccessCardProps {
     partnerName: string;
@@ -37,60 +37,48 @@ export function SuccessCard({ partnerName, proposalId }: SuccessCardProps) {
 
         setDownloading(true);
         try {
-            // Get the card element
             const card = cardRef.current;
 
             // Store original styles
             const originalTransform = card.style.transform;
             const originalTransition = card.style.transition;
+            const originalFilter = card.style.filter;
 
             // Reset transforms for clean capture
+            // We need to disable the Tilt effect temporarily
             card.style.transform = "none";
             card.style.transition = "none";
+            // Ensure background is fully opaque white for the image
+            card.style.backgroundColor = "#ffffff";
 
-            // Wait a frame for styles to apply
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait a tiny bit for styles to settle
+            await new Promise(resolve => setTimeout(resolve, 50));
 
-            const canvas = await html2canvas(card, {
-                scale: 3, // Higher quality
-                backgroundColor: "#ffffff",
-                useCORS: true,
-                logging: false,
-                allowTaint: true,
-                width: card.offsetWidth,
-                height: card.offsetHeight,
+            const dataUrl = await toPng(card, {
+                quality: 1.0,
+                pixelRatio: 3, // High quality for mobile
+                backgroundColor: '#ffffff',
+                cacheBust: true,
             });
 
             // Restore original styles
             card.style.transform = originalTransform;
             card.style.transition = originalTransition;
+            card.style.filter = originalFilter;
+            card.style.backgroundColor = ""; // Reset to CSS defined
 
             // Create and trigger download
-            const dataUrl = canvas.toDataURL("image/png", 1.0);
             const fileName = `valentine-pass-${partnerName.toLowerCase().replace(/\s+/g, "-")}.png`;
-
-            // Use blob for more reliable download
-            const blob = await (await fetch(dataUrl)).blob();
-            const blobUrl = URL.createObjectURL(blob);
-
             const link = document.createElement("a");
-            link.href = blobUrl;
+            link.href = dataUrl;
             link.download = fileName;
-            link.style.display = "none";
-            document.body.appendChild(link);
             link.click();
-
-            // Cleanup
-            setTimeout(() => {
-                document.body.removeChild(link);
-                URL.revokeObjectURL(blobUrl);
-            }, 100);
 
             setDownloaded(true);
             setTimeout(() => setDownloaded(false), 2000);
         } catch (err) {
             console.error("Failed to download:", err);
-            alert("Download failed. Please try taking a screenshot manually.");
+            alert("Download failed. Please try again or take a screenshot!");
         } finally {
             setDownloading(false);
         }

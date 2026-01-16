@@ -11,6 +11,7 @@ import { ProposalSection } from "@/components/ProposalSection";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Slide, ThemeType } from "@/lib/types";
 import { Heart } from "lucide-react";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 interface ProposalViewerProps {
     partnerName: string;
@@ -29,6 +30,7 @@ export function ProposalViewer({
 }: ProposalViewerProps) {
     const [unlocked, setUnlocked] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const isMobile = useMediaQuery("(max-width: 768px)");
 
     const handleUnlock = () => {
         setUnlocked(true);
@@ -43,6 +45,11 @@ export function ProposalViewer({
 
     const poem = introMessage || `Every moment with you is a memory I treasure forever...`;
 
+    // Responsive scroll height: 100vh per slide on desktop, 60vh on mobile
+    // This makes scrolling "faster" on mobile
+    const scrollHeightPerSlide = isMobile ? 60 : 100;
+    const totalHeight = (slides.length + 2) * scrollHeightPerSlide;
+
     return (
         <div className="relative">
             {/* GLOBAL Romantic Background - Fixed, spans entire experience */}
@@ -54,7 +61,7 @@ export function ProposalViewer({
             </audio>
 
             {/* Section 1: The Memory Tunnel (Scrollytelling with Images) */}
-            <div className="relative" style={{ height: `${(slides.length + 2) * 100}vh` }}>
+            <div className="relative" style={{ height: `${totalHeight}vh` }}>
                 {/* Fixed Image Layer */}
                 <ScrollyCanvas slides={slides} theme={theme} />
 

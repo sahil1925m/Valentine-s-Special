@@ -28,11 +28,16 @@ const LiquidSlide = ({
     const middle = start + segmentSize * 0.5;
     const end = start + segmentSize;
 
-    const opacity = useTransform(
-        scrollYProgress,
-        [start, start + 0.02, middle, end - 0.02, end],
-        [0, 1, 1, 1, 0]
-    );
+    // Fix Initial Gap: If it's the first slide (index 0), stick to opacity 1 at the start
+    // Otherwise use standard fade-in logic
+    const opacity = index === 0
+        ? useTransform(scrollYProgress, [start, end - 0.05, end], [1, 1, 0])
+        : useTransform(
+            scrollYProgress,
+            [start, start + 0.02, middle, end - 0.02, end],
+            [0, 1, 1, 1, 0]
+        );
+
     const scale = useTransform(
         scrollYProgress,
         [start, middle, end],
@@ -49,6 +54,20 @@ const LiquidSlide = ({
         scrollYProgress,
         [Math.max(0, start - segmentSize * 0.2), start],
         [0, 150]
+    );
+
+    // Text Animation (Parallax/Reveal Effect)
+    // Slide up and fade in slightly after the image appears
+    const textStart = start + (index === 0 ? 0 : 0.02);
+    const textY = useTransform(
+        scrollYProgress,
+        [textStart, textStart + 0.05, end],
+        [20, 0, -20]
+    );
+    const textOpacity = useTransform(
+        scrollYProgress,
+        [textStart, textStart + 0.04, end - 0.05, end],
+        [0, 1, 1, 0]
     );
 
     return (
@@ -77,13 +96,15 @@ const LiquidSlide = ({
                 </div>
 
                 {/* Text Caption */}
-                <div
+                <motion.div
                     className="absolute bottom-0 left-0 right-0 p-6 md:p-10 rounded-b-2xl"
                     style={{
                         background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)",
+                        y: textY,
+                        opacity: textOpacity
                     }}
                 >
-                    <p
+                    <motion.p
                         className="text-xl md:text-3xl lg:text-4xl font-serif text-white text-center"
                         style={{
                             fontFamily: "'Playfair Display', Georgia, serif",
@@ -91,8 +112,8 @@ const LiquidSlide = ({
                         }}
                     >
                         {slide.text}
-                    </p>
-                </div>
+                    </motion.p>
+                </motion.div>
             </motion.div>
         </motion.div>
     );
