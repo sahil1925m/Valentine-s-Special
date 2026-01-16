@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, useEffect, ChangeEvent } from "react";
 import { motion } from "framer-motion";
 import { Plus, Trash2, Upload, Heart, AlertTriangle, Palette, Eye, Sparkles, Shuffle, User, Image } from "lucide-react";
 import { Slide, ThemeType, themeLabels } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { checkSupabaseConfigured } from "@/lib/supabase";
 import { FloatingHearts } from "@/components/FloatingHearts";
 
 // Preset poems for inspiration
@@ -103,6 +103,15 @@ export function CreatorForm({ onPreview }: CreatorFormProps) {
         { id: "slide-0", image: "", text: "" },
     ]);
     const [theme, setTheme] = useState<ThemeType>("rose-gold");
+    const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
+
+    // Check Supabase configuration on mount
+    useEffect(() => {
+        checkSupabaseConfigured().then(configured => {
+            setIsConfigured(configured);
+            console.log('Supabase configured:', configured);
+        });
+    }, []);
 
     const handleImageUpload = (id: string, e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -151,7 +160,7 @@ export function CreatorForm({ onPreview }: CreatorFormProps) {
             alert("Please fill out all slides with an image and text!");
             return;
         }
-        if (!isSupabaseConfigured()) {
+        if (!isConfigured) {
             console.warn("Supabase not configured. Running in demo mode.");
             // We allow proceeding to preview, but saving will be blocked later
         }
@@ -210,7 +219,7 @@ export function CreatorForm({ onPreview }: CreatorFormProps) {
                         </div>
 
                         {/* Supabase Warning */}
-                        {!isSupabaseConfigured() && (
+                        {isConfigured === false && (
                             <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
                                 <AlertTriangle className="text-amber-400 shrink-0 mt-0.5" size={18} />
                                 <div className="space-y-1">
