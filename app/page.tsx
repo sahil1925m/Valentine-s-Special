@@ -43,7 +43,7 @@ export default function Home() {
   // Handle social unlock and upload
   const handleCreateLink = async () => {
     if (!previewData || !isSupabaseConfigured()) {
-      alert("Supabase is not configured!");
+      alert("⚠️ Demo Mode Active: Cannot save proposal because Supabase is not configured.");
       return;
     }
 

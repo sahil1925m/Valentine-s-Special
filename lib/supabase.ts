@@ -1,23 +1,42 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+// Helper to get the URL at runtime
+const getSupabaseUrl = () => process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const getSupabaseAnonKey = () => process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-// Helper to check if Supabase is configured
+// Helper to check if Supabase is configured - checks at runtime
 export const isSupabaseConfigured = () => {
-    return supabaseUrl !== '' && supabaseAnonKey !== '';
+    const url = getSupabaseUrl();
+    const key = getSupabaseAnonKey();
+    return url !== '' && key !== '' && url.includes('supabase');
 };
 
-// Create a dummy client or real client depending on configuration
-// The dummy client will fail gracefully when methods are called
+// Lazy initialization - create client only when first accessed
 let supabaseClient: SupabaseClient | null = null;
 
-if (isSupabaseConfigured()) {
-    supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-}
+const getSupabaseClient = (): SupabaseClient | null => {
+    if (supabaseClient) return supabaseClient;
 
-// Export a proxy that handles missing configuration gracefully
-export const supabase = supabaseClient as SupabaseClient;
+    const url = getSupabaseUrl();
+    const key = getSupabaseAnonKey();
+
+    if (url && key && url.includes('supabase')) {
+        supabaseClient = createClient(url, key);
+    }
+    return supabaseClient;
+};
+
+// Export a getter that handles missing configuration gracefully
+export const supabase = new Proxy({} as SupabaseClient, {
+    get(_, prop) {
+        const client = getSupabaseClient();
+        if (!client) {
+            console.warn('Supabase not configured. Add credentials to .env.local');
+            return () => Promise.resolve({ data: null, error: new Error('Supabase not configured') });
+        }
+        return (client as unknown as Record<string, unknown>)[prop as string];
+    }
+});
 
 // Type for the proposals table
 export interface ProposalRecord {

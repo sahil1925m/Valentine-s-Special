@@ -152,8 +152,8 @@ export function CreatorForm({ onPreview }: CreatorFormProps) {
             return;
         }
         if (!isSupabaseConfigured()) {
-            alert("Supabase is not configured. Please add your credentials to .env.local");
-            return;
+            console.warn("Supabase not configured. Running in demo mode.");
+            // We allow proceeding to preview, but saving will be blocked later
         }
 
         const files = slides.map((s) => s.file!).filter(Boolean);
@@ -213,9 +213,12 @@ export function CreatorForm({ onPreview }: CreatorFormProps) {
                         {!isSupabaseConfigured() && (
                             <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-start gap-3">
                                 <AlertTriangle className="text-amber-400 shrink-0 mt-0.5" size={18} />
-                                <p className="text-amber-200/80 text-sm">
-                                    Supabase not configured. Add credentials to <code className="bg-amber-500/20 px-1 rounded">.env.local</code>
-                                </p>
+                                <div className="space-y-1">
+                                    <p className="text-amber-200/80 text-sm font-medium">Demo Mode Active</p>
+                                    <p className="text-amber-200/60 text-xs">
+                                        Supabase is not configured. You can <b>preview</b> your proposal, but <b>saving/sharing</b> will be disabled.
+                                    </p>
+                                </div>
                             </div>
                         )}
 
