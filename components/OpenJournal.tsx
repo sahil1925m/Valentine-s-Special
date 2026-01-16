@@ -35,10 +35,13 @@ export function OpenJournal({ partnerName, images, proposalId }: OpenJournalProp
         try {
             const scene = sceneRef.current;
 
+            // Wait a moment for any final renders/loading
+            await new Promise(resolve => setTimeout(resolve, 100));
+
             // Capture the whole scene container
             const dataUrl = await toPng(scene, {
-                quality: 1.0,
-                pixelRatio: 3,
+                quality: 0.95, // Slightly reduced from 1.0 for better compatibility
+                pixelRatio: 2, // 3 might be too high for some mobile GPUs, 2 is retina-safe
                 cacheBust: true,
             });
 
@@ -52,7 +55,8 @@ export function OpenJournal({ partnerName, images, proposalId }: OpenJournalProp
             setTimeout(() => setDownloaded(false), 2000);
         } catch (err) {
             console.error("Failed to download:", err);
-            alert("Download failed. Please try again or take a screenshot!");
+            // Fallback: try with lower settings if first attempt fails
+            alert("Oops! The image was too big to save. Try taking a screenshot instead, or check the console for details.");
         } finally {
             setDownloading(false);
         }

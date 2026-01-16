@@ -3,6 +3,7 @@
 import React from "react";
 import { motion, useScroll, useTransform, useSpring, MotionValue } from "framer-motion";
 import { Slide, ThemeType } from "@/lib/types";
+import { GradualSpacing } from "@/components/ui/gradual-spacing";
 
 interface ScrollyCanvasProps {
     slides: Slide[];
@@ -104,15 +105,10 @@ const LiquidSlide = ({
                         opacity: textOpacity
                     }}
                 >
-                    <motion.p
+                    <GradualSpacing
                         className="text-xl md:text-3xl lg:text-4xl font-serif text-white text-center"
-                        style={{
-                            fontFamily: "'Playfair Display', Georgia, serif",
-                            textShadow: "0 2px 20px rgba(0,0,0,0.9), 0 0 40px rgba(255,105,180,0.3)",
-                        }}
-                    >
-                        {slide.text}
-                    </motion.p>
+                        text={slide.text}
+                    />
                 </motion.div>
             </motion.div>
         </motion.div>
