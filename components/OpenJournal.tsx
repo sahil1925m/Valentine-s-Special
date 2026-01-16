@@ -32,18 +32,28 @@ export function OpenJournal({ partnerName, images, proposalId }: OpenJournalProp
         if (!sceneRef.current) return;
 
         setDownloading(true);
-        try {
-            const scene = sceneRef.current;
 
+        const tryCapture = async (scale: number): Promise<string> => {
+            if (!sceneRef.current) throw new Error("No Ref");
             // Wait a moment for any final renders/loading
             await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Capture the whole scene container
-            const dataUrl = await toPng(scene, {
-                quality: 0.95, // Slightly reduced from 1.0 for better compatibility
-                pixelRatio: 2, // 3 might be too high for some mobile GPUs, 2 is retina-safe
+            return await toPng(sceneRef.current, {
+                quality: 0.95,
+                pixelRatio: scale,
                 cacheBust: true,
             });
+        };
+
+        try {
+            // First try: High Quality (2x)
+            // If that fails, catch and try Medium Quality (1x)
+            let dataUrl = "";
+            try {
+                dataUrl = await tryCapture(2);
+            } catch (firstErr) {
+                console.warn("High quality capture failed, retrying with standard quality...", firstErr);
+                dataUrl = await tryCapture(1);
+            }
 
             const fileName = `our-story-${partnerName.toLowerCase().replace(/\s+/g, "-")}.png`;
             const link = document.createElement("a");
@@ -55,8 +65,7 @@ export function OpenJournal({ partnerName, images, proposalId }: OpenJournalProp
             setTimeout(() => setDownloaded(false), 2000);
         } catch (err) {
             console.error("Failed to download:", err);
-            // Fallback: try with lower settings if first attempt fails
-            alert("Oops! The image was too big to save. Try taking a screenshot instead, or check the console for details.");
+            alert("Oops! The image was too big to save. Try taking a screenshot instead!");
         } finally {
             setDownloading(false);
         }

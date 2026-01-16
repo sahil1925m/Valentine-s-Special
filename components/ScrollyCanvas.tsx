@@ -73,44 +73,51 @@ const LiquidSlide = ({
 
     return (
         <motion.div
-            className="fixed inset-0 flex items-center justify-center z-10"
+            className="fixed inset-0 flex items-center justify-center z-10 px-4 md:px-20"
             style={{ opacity }}
         >
-            <motion.div
-                className="relative w-[88vw] h-[65vh] md:w-[70vw] md:h-[75vh] max-w-5xl"
-                style={{
-                    scale,
-                    filter: useTransform(blur, (v) => `blur(${v}px)`),
-                    clipPath: index === 0
-                        ? "circle(150% at center)"
-                        : useTransform(clipProgress, (v) => `circle(${Math.max(v, 0)}% at center)`),
-                }}
-            >
-                {/* The Image */}
-                <div className="w-full h-full rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.6)] border border-white/10">
+            <div className="relative w-full max-w-7xl md:grid md:grid-cols-2 md:gap-12 md:items-center h-[80vh] md:h-auto">
+
+                {/* The Image (Left side on Desktop) */}
+                <motion.div
+                    className="relative w-full h-[50vh] md:h-[70vh] rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.6)] border border-white/10 mx-auto md:mx-0 order-1 md:order-1"
+                    style={{
+                        scale,
+                        filter: useTransform(blur, (v) => `blur(${v}px)`),
+                        clipPath: index === 0
+                            ? "circle(150% at center)"
+                            : useTransform(clipProgress, (v) => `circle(${Math.max(v, 0)}% at center)`),
+                    }}
+                >
                     <img
                         src={slide.image}
                         alt="Memory"
                         className="w-full h-full object-cover"
                         loading="eager"
                     />
-                </div>
+                </motion.div>
 
-                {/* Text Caption */}
+                {/* Text Caption (Right side on Desktop) */}
                 <motion.div
-                    className="absolute bottom-0 left-0 right-0 p-6 md:p-10 rounded-b-2xl"
+                    className="relative flex flex-col justify-center items-center md:items-start text-center md:text-left mt-8 md:mt-0 order-2 md:order-2 p-6 md:p-12 rounded-xl backdrop-blur-sm bg-black/20 md:bg-transparent border border-white/5 md:border-none"
                     style={{
-                        background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)",
                         y: textY,
                         opacity: textOpacity
                     }}
                 >
-                    <GradualSpacing
-                        className="text-xl md:text-3xl lg:text-4xl font-serif text-white text-center"
-                        text={slide.text}
-                    />
+                    <div className="md:bg-white/5 md:backdrop-blur-md md:p-10 md:rounded-2xl md:border md:border-white/10 md:shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+                        <GradualSpacing
+                            className="text-2xl md:text-4xl lg:text-5xl font-serif text-white/90 leading-relaxed font-light tracking-wide"
+                            text={slide.text}
+                            duration={1.5} // Slower, more romantic
+                            delayMultiple={0.1} // Explicit char-by-char feel
+                        />
+
+                        {/* Decorative Divider */}
+                        <div className="w-24 h-px bg-gradient-to-r from-transparent via-rose-300/50 to-transparent mx-auto md:mx-0 mt-6" />
+                    </div>
                 </motion.div>
-            </motion.div>
+            </div>
         </motion.div>
     );
 };
