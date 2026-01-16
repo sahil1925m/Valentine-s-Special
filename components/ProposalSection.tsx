@@ -8,7 +8,7 @@ import { OpenJournal } from "@/components/OpenJournal";
 import { EnchantedRose } from "@/components/EnchantedRose";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { cn } from "@/lib/utils";
-import { FinalBouquet } from "@/components/FinalBouquet";
+
 
 // EASY TO CHANGE CONSTANTS
 const SUBTEXT_DEFAULT = "Bet you can't click No 😉";
@@ -105,7 +105,7 @@ export function ProposalSection({ partnerName, onRestart, proposalId, images = [
 
                 {/* Reward: Final Bouquet (Inside the reveal area) */}
                 <div className="mb-4">
-                    <FinalBouquet />
+
                 </div>
 
                 {/* Cheeky Subtext */}

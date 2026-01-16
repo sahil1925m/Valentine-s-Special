@@ -11,7 +11,6 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Slide, ThemeType } from "@/lib/types";
 import { Heart } from "lucide-react";
 import { LoveLetter } from "@/components/LoveLetter";
-import { RoseProvider } from "@/lib/RoseContext";
 import { EnchantedRose } from "@/components/EnchantedRose";
 
 interface ProposalViewerProps {
@@ -24,9 +23,7 @@ interface ProposalViewerProps {
 
 export function ProposalViewer(props: ProposalViewerProps) {
     return (
-        <RoseProvider>
-            <ProposalViewerContent {...props} />
-        </RoseProvider>
+        <ProposalViewerContent {...props} />
     );
 }
 

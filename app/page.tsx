@@ -13,7 +13,6 @@ import { Slide, ThemeType } from "@/lib/types";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { Pencil, Rocket } from "lucide-react";
 import { LoveLetter } from "@/components/LoveLetter";
-import { RoseProvider } from "@/lib/RoseContext";
 import { EnchantedRose } from "@/components/EnchantedRose";
 
 type ViewMode = "FORM" | "PREVIEW" | "SUCCESS";
@@ -133,29 +132,27 @@ export default function Home() {
 
     return (
       <>
-        <RoseProvider>
-          <div className="relative bg-black">
-            {/* Section 1: The Memory String (Scrapbook Theme) */}
-            <div className="relative min-h-[100vh]">
-              <MemoryString slides={previewData.slides} />
+        <div className="relative bg-black">
+          {/* Section 1: The Memory String (Scrapbook Theme) */}
+          <div className="relative min-h-[100vh]">
+            <MemoryString slides={previewData.slides} />
 
-              {/* Atmosphere Layer */}
-              <FloatingParticles />
-            </div>
-
-            {/* Section 2: Love Letter (Interactive Envelope) */}
-            <div className="relative z-[60]">
-              <LoveLetter poem={previewData.introMessage} partnerName={previewData.partnerName} />
-            </div>
-
-            {/* Section 3: Proposals End Section (Enchanted Rose + Question) */}
-            <ProposalSection
-              partnerName={previewData.partnerName}
-              images={previewData.slides.slice(0, 3).map(s => s.image)}
-              onRestart={() => setViewMode("FORM")}
-            />
+            {/* Atmosphere Layer */}
+            <FloatingParticles />
           </div>
-        </RoseProvider>
+
+          {/* Section 2: Love Letter (Interactive Envelope) */}
+          <div className="relative z-[60]">
+            <LoveLetter poem={previewData.introMessage} partnerName={previewData.partnerName} />
+          </div>
+
+          {/* Section 3: Proposals End Section (Enchanted Rose + Question) */}
+          <ProposalSection
+            partnerName={previewData.partnerName}
+            images={previewData.slides.slice(0, 3).map(s => s.image)}
+            onRestart={() => setViewMode("FORM")}
+          />
+        </div>
 
         {/* Sticky Bottom Bar */}
         <motion.div

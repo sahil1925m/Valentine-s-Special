@@ -4,7 +4,6 @@ import React, { useRef } from "react";
 import { motion, useScroll, useTransform, useSpring, MotionValue } from "framer-motion";
 import { Slide } from "@/lib/types";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { HiddenRose } from "@/components/HiddenRose";
 
 interface MemoryStringProps {
     slides: Slide[];
@@ -106,12 +105,6 @@ const PolaroidCard = ({
                     {/* Decorative doodle or underline could go here */}
                 </motion.div>
 
-                {/* Hidden Rose - Below the text, clearly visible */}
-                {index % 3 !== 0 && (
-                    <div className="mt-8">
-                        <HiddenRose />
-                    </div>
-                )}
             </div>
         </motion.div>
     );
