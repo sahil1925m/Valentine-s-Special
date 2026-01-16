@@ -7,9 +7,10 @@ import { Sparkles } from "lucide-react";
 
 interface EnchantedRoseProps {
     partnerName: string;
+    children?: React.ReactNode;
 }
 
-export function EnchantedRose({ partnerName }: EnchantedRoseProps) {
+export function EnchantedRose({ partnerName, children }: EnchantedRoseProps) {
     const [isOpen, setIsOpen] = useState(false);
 
     const handleTap = () => {
