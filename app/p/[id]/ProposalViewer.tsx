@@ -4,14 +4,15 @@ import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { Preloader } from "@/components/Preloader";
 import { PoetryHero } from "@/components/PoetryHero";
-import { ScrollyCanvas } from "@/components/ScrollyCanvas";
-import { Overlay } from "@/components/Overlay";
+import { MemoryString } from "@/components/MemoryString";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { ProposalSection } from "@/components/ProposalSection";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Slide, ThemeType } from "@/lib/types";
 import { Heart } from "lucide-react";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { LoveLetter } from "@/components/LoveLetter";
+import { RoseProvider } from "@/lib/RoseContext";
+import { EnchantedRose } from "@/components/EnchantedRose";
 
 interface ProposalViewerProps {
     partnerName: string;
@@ -21,7 +22,15 @@ interface ProposalViewerProps {
     proposalId?: string;
 }
 
-export function ProposalViewer({
+export function ProposalViewer(props: ProposalViewerProps) {
+    return (
+        <RoseProvider>
+            <ProposalViewerContent {...props} />
+        </RoseProvider>
+    );
+}
+
+function ProposalViewerContent({
     partnerName,
     introMessage,
     slides,
@@ -30,7 +39,6 @@ export function ProposalViewer({
 }: ProposalViewerProps) {
     const [unlocked, setUnlocked] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    const isMobile = useMediaQuery("(max-width: 768px)");
 
     const handleUnlock = () => {
         setUnlocked(true);
@@ -45,11 +53,6 @@ export function ProposalViewer({
 
     const poem = introMessage || `Every moment with you is a memory I treasure forever...`;
 
-    // Responsive scroll height: 100vh per slide on desktop, 60vh on mobile
-    // This makes scrolling "faster" on mobile
-    const scrollHeightPerSlide = isMobile ? 60 : 100;
-    const totalHeight = (slides.length + 2) * scrollHeightPerSlide;
-
     return (
         <div className="relative">
             {/* GLOBAL Romantic Background - Fixed, spans entire experience */}
@@ -60,28 +63,25 @@ export function ProposalViewer({
                 <source src="/music/background.mp3" type="audio/mpeg" />
             </audio>
 
-            {/* Section 1: The Memory Tunnel (Scrollytelling with Images) */}
-            <div className="relative" style={{ height: `${totalHeight}vh` }}>
-                {/* Fixed Image Layer */}
-                <ScrollyCanvas slides={slides} theme={theme} />
+            {/* Section 1: The Memory String (Scrapbook Theme) */}
+            <div className="relative min-h-[100vh]">
+                <MemoryString slides={slides} />
 
-                {/* Floating Particles */}
+                {/* Floating Particles - Kept for atmosphere */}
                 <FloatingParticles />
-
-                {/* Scroll Height Provider */}
-                <Overlay slides={slides} />
             </div>
 
-            {/* Section 2: The Prologue (Poetry) - Comes AFTER all images */}
+            {/* Section 2: The Love Letter (Interactive Envelope) */}
             <div className="relative z-[60]">
-                <PoetryHero poem={poem} partnerName={partnerName} />
+                <LoveLetter poem={poem} partnerName={partnerName} />
             </div>
 
-            {/* Section 3: The Proposal Question */}
+            {/* Section 3: The Proposal (Enchanted Rose + Question) */}
             <div className="relative z-[60]">
                 <ProposalSection
                     partnerName={partnerName}
                     proposalId={proposalId}
+                    images={slides.slice(0, 3).map(s => s.image)}
                     onRestart={() => setUnlocked(false)}
                 />
             </div>

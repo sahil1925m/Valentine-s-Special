@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CreatorForm } from "@/components/CreatorForm";
-import { ScrollyCanvas } from "@/components/ScrollyCanvas";
-import { Overlay } from "@/components/Overlay";
+import { MemoryString } from "@/components/MemoryString";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { ProposalSection } from "@/components/ProposalSection";
 import { Preloader } from "@/components/Preloader";
@@ -13,7 +12,9 @@ import { SuccessModal } from "@/components/SuccessModal";
 import { Slide, ThemeType } from "@/lib/types";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { Pencil, Rocket } from "lucide-react";
-import { PoetryHero } from "@/components/PoetryHero";
+import { LoveLetter } from "@/components/LoveLetter";
+import { RoseProvider } from "@/lib/RoseContext";
+import { EnchantedRose } from "@/components/EnchantedRose";
 
 type ViewMode = "FORM" | "PREVIEW" | "SUCCESS";
 
@@ -132,28 +133,29 @@ export default function Home() {
 
     return (
       <>
-        <div className="relative bg-black">
-          {/* Section 1: The Tunnel (Images first) */}
-          <div className="relative min-h-[400vh]">
-            {/* Background Layer */}
-            <ScrollyCanvas slides={previewData.slides} theme={previewData.theme} />
+        <RoseProvider>
+          <div className="relative bg-black">
+            {/* Section 1: The Memory String (Scrapbook Theme) */}
+            <div className="relative min-h-[100vh]">
+              <MemoryString slides={previewData.slides} />
 
-            {/* Atmosphere Layer */}
-            <FloatingParticles />
+              {/* Atmosphere Layer */}
+              <FloatingParticles />
+            </div>
 
-            {/* Scrollable Content Layer */}
-            <Overlay slides={previewData.slides} />
+            {/* Section 2: Love Letter (Interactive Envelope) */}
+            <div className="relative z-[60]">
+              <LoveLetter poem={previewData.introMessage} partnerName={previewData.partnerName} />
+            </div>
+
+            {/* Section 3: Proposals End Section (Enchanted Rose + Question) */}
+            <ProposalSection
+              partnerName={previewData.partnerName}
+              images={previewData.slides.slice(0, 3).map(s => s.image)}
+              onRestart={() => setViewMode("FORM")}
+            />
           </div>
-
-          {/* Section 2: Poetry Hero (The Prologue) - After images */}
-          <PoetryHero poem={previewData.introMessage} partnerName={previewData.partnerName} />
-
-          {/* Section 3: Proposals End Section */}
-          <ProposalSection
-            partnerName={previewData.partnerName}
-            onRestart={() => setViewMode("FORM")}
-          />
-        </div>
+        </RoseProvider>
 
         {/* Sticky Bottom Bar */}
         <motion.div

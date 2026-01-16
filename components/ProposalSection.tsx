@@ -3,9 +3,12 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
-import { SuccessCard } from "@/components/SuccessCard";
+import { PhotoStrip } from "@/components/PhotoStrip";
+import { OpenJournal } from "@/components/OpenJournal";
+import { EnchantedRose } from "@/components/EnchantedRose";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { cn } from "@/lib/utils";
+import { FinalBouquet } from "@/components/FinalBouquet";
 
 // EASY TO CHANGE CONSTANTS
 const SUBTEXT_DEFAULT = "Bet you can't click No 😉";
@@ -15,9 +18,10 @@ interface ProposalSectionProps {
     partnerName: string;
     onRestart: () => void;
     proposalId?: string;
+    images?: string[]; // For PhotoStrip
 }
 
-export function ProposalSection({ partnerName, onRestart, proposalId }: ProposalSectionProps) {
+export function ProposalSection({ partnerName, onRestart, proposalId, images = [] }: ProposalSectionProps) {
     const [noBtnPosition, setNoBtnPosition] = useState({ x: 0, y: 0 });
     const [accepted, setAccepted] = useState(false);
     const [subtext, setSubtext] = useState(SUBTEXT_DEFAULT);
@@ -74,13 +78,17 @@ export function ProposalSection({ partnerName, onRestart, proposalId }: Proposal
 
     if (accepted) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center">
-                <SuccessCard partnerName={partnerName} proposalId={proposalId} />
+            <div className="min-h-screen flex flex-col items-center justify-center bg-transparent">
+                <OpenJournal
+                    partnerName={partnerName}
+                    images={images}
+                    proposalId={proposalId}
+                />
 
                 <motion.button
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 1.5 }}
+                    transition={{ delay: 4 }}
                     onClick={onRestart}
                     className="mt-8 text-white/50 hover:text-white text-sm underline transition-colors z-50 text-center"
                 >
@@ -92,18 +100,13 @@ export function ProposalSection({ partnerName, onRestart, proposalId }: Proposal
 
     return (
         <div className="relative min-h-screen flex flex-col items-center justify-center text-center p-8 overflow-hidden">
-            <div className="space-y-8 relative z-30">
-                <motion.h2
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    className="text-4xl md:text-6xl font-bold text-white font-serif drop-shadow-lg"
-                >
-                    So, {partnerName}...
-                </motion.h2>
+            {/* Enchanted Rose Reveal Section (Acts as the Proposal Hero) */}
+            <EnchantedRose partnerName={partnerName}>
 
-                <p className="text-2xl text-rose-200 font-medium">
-                    Will you be my Valentine?
-                </p>
+                {/* Reward: Final Bouquet (Inside the reveal area) */}
+                <div className="mb-4">
+                    <FinalBouquet />
+                </div>
 
                 {/* Cheeky Subtext */}
                 <motion.p
@@ -111,12 +114,12 @@ export function ProposalSection({ partnerName, onRestart, proposalId }: Proposal
                     initial={{ opacity: 0 }}
                     animate={{ opacity: [0.7, 1, 0.7] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    className="text-sm md:text-base text-gray-400 italic font-sans"
+                    className="text-sm md:text-base text-gray-400 italic font-sans mb-4"
                 >
                     {subtext}
                 </motion.p>
 
-                <div className="flex flex-col md:flex-row gap-8 items-center justify-center mt-8">
+                <div className="flex flex-col md:flex-row gap-8 items-center justify-center pointer-events-auto">
                     <button
                         onClick={handleYesClick}
                         className={cn(
@@ -137,7 +140,7 @@ export function ProposalSection({ partnerName, onRestart, proposalId }: Proposal
                         No 😢
                     </motion.button>
                 </div>
-            </div>
+            </EnchantedRose>
         </div>
     );
 }
