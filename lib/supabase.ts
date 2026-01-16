@@ -8,6 +8,18 @@ const getSupabaseAnonKey = () => process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 export const isSupabaseConfigured = () => {
     const url = getSupabaseUrl();
     const key = getSupabaseAnonKey();
+
+    // Debug logging - remove after fixing
+    if (typeof window !== 'undefined') {
+        console.log('Supabase Debug:', {
+            urlExists: !!url,
+            urlLength: url?.length || 0,
+            keyExists: !!key,
+            keyLength: key?.length || 0,
+            urlPreview: url?.substring(0, 30) || 'EMPTY'
+        });
+    }
+
     return url !== '' && key !== '' && url.includes('supabase');
 };
 
