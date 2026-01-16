@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Instagram, Lock, Unlock, Loader2, ExternalLink } from "lucide-react";
+import { Instagram, Lock, Unlock, Loader2, ExternalLink, CheckCircle2, Circle } from "lucide-react";
 
 interface SocialUnlockModalProps {
     isOpen: boolean;
@@ -11,33 +11,25 @@ interface SocialUnlockModalProps {
     isUploading: boolean;
 }
 
-const INSTAGRAM_URL = "https://instagram.com/vibecoder"; // Replace with actual handle
-const UNLOCK_DELAY = 3; // seconds
+const INSTAGRAM_URL = "https://instagram.com/syntaax.ai";
 
 export function SocialUnlockModal({ isOpen, onClose, onUnlock, isUploading }: SocialUnlockModalProps) {
-    const [countdown, setCountdown] = useState(UNLOCK_DELAY);
     const [hasVisitedIG, setHasVisitedIG] = useState(false);
-
-    useEffect(() => {
-        if (isOpen && hasVisitedIG && countdown > 0) {
-            const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-            return () => clearTimeout(timer);
-        }
-    }, [isOpen, hasVisitedIG, countdown]);
+    const [isVerified, setIsVerified] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
-            setCountdown(UNLOCK_DELAY);
             setHasVisitedIG(false);
+            setIsVerified(false);
         }
     }, [isOpen]);
 
     const handleFollowClick = () => {
         window.open(INSTAGRAM_URL, "_blank");
-        setHasVisitedIG(true);
+        setTimeout(() => setHasVisitedIG(true), 1000); // Small delay to feel natural
     };
 
-    const canUnlock = hasVisitedIG && countdown === 0;
+    const canUnlock = isVerified;
 
     if (!isOpen) return null;
 
@@ -74,20 +66,50 @@ export function SocialUnlockModal({ isOpen, onClose, onUnlock, isUploading }: So
                         {/* Step 1: Follow */}
                         <button
                             onClick={handleFollowClick}
-                            className="w-full py-4 px-4 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white rounded-xl font-medium hover:opacity-90 transition flex items-center justify-center gap-3 shadow-lg"
+                            className="w-full py-4 px-4 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white rounded-xl font-medium hover:opacity-90 transition flex items-center justify-center gap-3 shadow-lg group"
                         >
-                            <Instagram size={22} />
-                            Follow @vibecoder on IG
-                            <ExternalLink size={16} />
+                            <Instagram size={22} className="group-hover:scale-110 transition-transform" />
+                            Follow @syntaax.ai
+                            <ExternalLink size={16} className="opacity-70" />
                         </button>
 
-                        {/* Step 2: Unlock */}
+                        {/* Step 2: Verify Checkbox (Only appears after visiting) */}
+                        <AnimatePresence>
+                            {hasVisitedIG && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    className="overflow-hidden"
+                                >
+                                    <button
+                                        onClick={() => setIsVerified(!isVerified)}
+                                        className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-gray-200 hover:border-rose-500 hover:bg-rose-50 transition-colors text-left group"
+                                    >
+                                        {isVerified ? (
+                                            <CheckCircle2 className="text-rose-500 shrink-0" size={24} />
+                                        ) : (
+                                            <Circle className="text-gray-300 group-hover:text-rose-500 shrink-0" size={24} />
+                                        )}
+                                        <div className="space-y-0.5">
+                                            <p className={`text-sm font-medium ${isVerified ? "text-rose-700" : "text-gray-600"}`}>
+                                                I confirm I have followed
+                                            </p>
+                                            <p className="text-xs text-gray-400">
+                                                Honesty check! This keeps the app free ❤️
+                                            </p>
+                                        </div>
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Step 3: Unlock */}
                         <button
                             onClick={onUnlock}
                             disabled={!canUnlock || isUploading}
                             className={`w-full py-4 px-4 rounded-xl font-medium transition flex items-center justify-center gap-2 ${canUnlock && !isUploading
-                                    ? "bg-rose-600 text-white hover:bg-rose-700"
-                                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                ? "bg-rose-600 text-white hover:bg-rose-700 shadow-lg hover:shadow-rose-500/30"
+                                : "bg-gray-100 text-gray-400 cursor-not-allowed"
                                 }`}
                         >
                             {isUploading ? (
@@ -98,17 +120,12 @@ export function SocialUnlockModal({ isOpen, onClose, onUnlock, isUploading }: So
                             ) : canUnlock ? (
                                 <>
                                     <Unlock size={18} />
-                                    I Have Followed! (Generate Link)
-                                </>
-                            ) : hasVisitedIG ? (
-                                <>
-                                    <Lock size={18} />
-                                    Unlocking in {countdown}s...
+                                    Create My Link
                                 </>
                             ) : (
                                 <>
                                     <Lock size={18} />
-                                    Follow first to unlock
+                                    Locked
                                 </>
                             )}
                         </button>
