@@ -76,11 +76,11 @@ const LiquidSlide = ({
             className="fixed inset-0 flex items-center justify-center z-10 px-4 md:px-20"
             style={{ opacity }}
         >
-            <div className="relative w-full max-w-7xl md:grid md:grid-cols-2 md:gap-12 md:items-center h-[80vh] md:h-auto">
+            <div className="relative w-full max-w-7xl flex flex-col items-center justify-center md:grid md:grid-cols-2 md:gap-12 md:items-center h-[85vh] md:h-auto pointer-events-none">
 
-                {/* The Image (Left side on Desktop) */}
+                {/* The Image (Top on Mobile, Left on Desktop) */}
                 <motion.div
-                    className="relative w-full h-[50vh] md:h-[70vh] rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.6)] border border-white/10 mx-auto md:mx-0 order-1 md:order-1"
+                    className="relative w-full h-[45vh] md:h-[70vh] rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.6)] border border-white/10 mx-auto md:mx-0 order-1 md:order-1"
                     style={{
                         scale,
                         filter: useTransform(blur, (v) => `blur(${v}px)`),
@@ -97,24 +97,24 @@ const LiquidSlide = ({
                     />
                 </motion.div>
 
-                {/* Text Caption (Right side on Desktop) */}
+                {/* Text Caption (Bottom on Mobile, Right on Desktop) */}
                 <motion.div
-                    className="relative flex flex-col justify-center items-center md:items-start text-center md:text-left mt-8 md:mt-0 order-2 md:order-2 p-6 md:p-12 rounded-xl backdrop-blur-sm bg-black/20 md:bg-transparent border border-white/5 md:border-none"
+                    className="relative w-full flex flex-col justify-center items-center md:items-start text-center md:text-left mt-6 md:mt-0 order-2 md:order-2 rounded-xl backdrop-blur-sm md:bg-transparent pointer-events-auto"
                     style={{
                         y: textY,
                         opacity: textOpacity
                     }}
                 >
-                    <div className="md:bg-white/5 md:backdrop-blur-md md:p-10 md:rounded-2xl md:border md:border-white/10 md:shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+                    <div className="bg-black/40 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] w-full">
                         <GradualSpacing
-                            className="text-2xl md:text-4xl lg:text-5xl font-serif text-white/90 leading-relaxed font-light tracking-wide"
+                            className="text-xl md:text-4xl lg:text-5xl font-serif text-white/90 leading-relaxed font-light tracking-wide"
                             text={slide.text}
-                            duration={1.5} // Slower, more romantic
-                            delayMultiple={0.1} // Explicit char-by-char feel
+                            duration={1.5}
+                            delayMultiple={0.1}
                         />
 
                         {/* Decorative Divider */}
-                        <div className="w-24 h-px bg-gradient-to-r from-transparent via-rose-300/50 to-transparent mx-auto md:mx-0 mt-6" />
+                        <div className="w-16 md:w-24 h-px bg-gradient-to-r from-transparent via-rose-300/50 to-transparent mx-auto md:mx-0 mt-4 md:mt-6" />
                     </div>
                 </motion.div>
             </div>

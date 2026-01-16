@@ -36,7 +36,8 @@ export function OpenJournal({ partnerName, images, proposalId }: OpenJournalProp
         const tryCapture = async (scale: number): Promise<string> => {
             if (!sceneRef.current) throw new Error("No Ref");
             // Wait a moment for any final renders/loading
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 300)); // Increased delay for stability
+
             return await toPng(sceneRef.current, {
                 quality: 0.95,
                 pixelRatio: scale,
@@ -45,14 +46,23 @@ export function OpenJournal({ partnerName, images, proposalId }: OpenJournalProp
         };
 
         try {
-            // First try: High Quality (2x)
-            // If that fails, catch and try Medium Quality (1x)
+            // Check if mobile device
+            const isMobile = window.innerWidth < 768;
+
             let dataUrl = "";
-            try {
-                dataUrl = await tryCapture(2);
-            } catch (firstErr) {
-                console.warn("High quality capture failed, retrying with standard quality...", firstErr);
-                dataUrl = await tryCapture(1);
+
+            if (isMobile) {
+                // Mobile devices run out of memory easily, strictly use 1x or 1.5x
+                console.log("Mobile device detected, using standard quality capture.");
+                dataUrl = await tryCapture(1.5);
+            } else {
+                // Desktop: Try High Quality (2x) first
+                try {
+                    dataUrl = await tryCapture(2);
+                } catch (firstErr) {
+                    console.warn("High quality capture failed, retrying with standard quality...", firstErr);
+                    dataUrl = await tryCapture(1);
+                }
             }
 
             const fileName = `our-story-${partnerName.toLowerCase().replace(/\s+/g, "-")}.png`;
@@ -65,7 +75,8 @@ export function OpenJournal({ partnerName, images, proposalId }: OpenJournalProp
             setTimeout(() => setDownloaded(false), 2000);
         } catch (err) {
             console.error("Failed to download:", err);
-            alert("Oops! The image was too big to save. Try taking a screenshot instead!");
+            // Last resort: Just tell them
+            alert("Oops! Your device is protecting its memory. Try taking a screenshot manually for the best quality!");
         } finally {
             setDownloading(false);
         }

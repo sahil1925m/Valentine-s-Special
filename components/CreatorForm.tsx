@@ -174,6 +174,26 @@ export function CreatorForm({ onPreview }: CreatorFormProps) {
         });
     };
 
+    const handleBulkUpload = (e: ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        const newSlides = files.map((file, index) => ({
+            id: `slide-${Date.now()}-${index}`,
+            image: URL.createObjectURL(file),
+            text: "",
+            file: file
+        }));
+
+        setSlides(prev => {
+            // If the first slide is empty (default state), replace it
+            if (prev.length === 1 && !prev[0].image && !prev[0].text) {
+                return newSlides;
+            }
+            return [...prev, ...newSlides];
+        });
+    };
+
     return (
         <div
             className="fixed inset-0 overflow-auto"
@@ -346,12 +366,24 @@ export function CreatorForm({ onPreview }: CreatorFormProps) {
                                 </motion.div>
                             ))}
 
-                            <button
-                                onClick={addSlide}
-                                className="w-full py-3 rounded-xl border-2 border-dashed border-white/20 text-white/40 text-sm font-medium hover:border-pink-500/50 hover:text-pink-400 transition-all flex items-center justify-center gap-2"
-                            >
-                                <Plus size={16} /> Add Slide
-                            </button>
+                            <div className="grid grid-cols-2 gap-3">
+                                <label className="py-3 rounded-xl border-2 border-dashed border-white/20 text-white/40 text-sm font-medium hover:border-pink-500/50 hover:text-pink-400 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                    <Upload size={16} /> Bulk Upload
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        className="hidden"
+                                        onChange={handleBulkUpload}
+                                    />
+                                </label>
+                                <button
+                                    onClick={addSlide}
+                                    className="py-3 rounded-xl border-2 border-dashed border-white/20 text-white/40 text-sm font-medium hover:border-pink-500/50 hover:text-pink-400 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Plus size={16} /> Add 1 Slide
+                                </button>
+                            </div>
                         </div>
 
                         {/* Preview Button with Heartbeat */}
