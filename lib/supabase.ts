@@ -17,10 +17,6 @@ async function fetchConfig(): Promise<{ url: string; key: string }> {
                 url: data.supabaseUrl || '',
                 key: data.supabaseAnonKey || ''
             };
-            console.log('Supabase Config Loaded:', {
-                urlExists: !!cachedConfig.url,
-                keyExists: !!cachedConfig.key
-            });
             return cachedConfig;
         })
         .catch(err => {

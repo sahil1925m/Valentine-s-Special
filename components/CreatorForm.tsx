@@ -109,7 +109,6 @@ export function CreatorForm({ onPreview }: CreatorFormProps) {
     useEffect(() => {
         checkSupabaseConfigured().then(configured => {
             setIsConfigured(configured);
-            console.log('Supabase configured:', configured);
         });
     }, []);
 
