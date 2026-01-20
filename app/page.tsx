@@ -13,16 +13,18 @@ import { Slide, ThemeType } from "@/lib/types";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { Pencil, Rocket } from "lucide-react";
 import { LoveLetter } from "@/components/LoveLetter";
-import { EnchantedRose } from "@/components/EnchantedRose";
+
 
 type ViewMode = "FORM" | "PREVIEW" | "SUCCESS";
 
 interface PreviewData {
   partnerName: string;
+  partnerGender: "female" | "male" | "neutral";
   introMessage: string;
   slides: Slide[];
   theme: ThemeType;
   files: File[];
+  creatorEmail?: string;
 }
 
 export default function Home() {
@@ -79,10 +81,12 @@ export default function Home() {
       const { error } = await supabase.from("proposals").insert({
         id: proposalId,
         partner_name: previewData.partnerName,
+        partner_gender: previewData.partnerGender,
         intro_message: previewData.introMessage,
         messages,
         image_urls: imageUrls,
         theme: previewData.theme,
+        creator_email: previewData.creatorEmail || null,
       });
 
       if (error) {
@@ -111,7 +115,7 @@ export default function Home() {
 
   // FORM MODE
   if (viewMode === "FORM") {
-    return <CreatorForm onPreview={handlePreview} />;
+    return <CreatorForm onPreview={handlePreview} initialData={previewData} />;
   }
 
   // SUCCESS MODE
@@ -147,11 +151,14 @@ export default function Home() {
           </div>
 
           {/* Section 3: Proposals End Section (Enchanted Rose + Question) */}
-          <ProposalSection
-            partnerName={previewData.partnerName}
-            images={previewData.slides.slice(0, 3).map(s => s.image)}
-            onRestart={() => setViewMode("FORM")}
-          />
+          <div className="relative z-[60] mt-48">
+            <ProposalSection
+              partnerName={previewData.partnerName}
+              partnerGender={previewData.partnerGender}
+              images={previewData.slides.slice(0, 3).map(s => s.image)}
+              onRestart={() => setViewMode("FORM")}
+            />
+          </div>
         </div>
 
         {/* Sticky Bottom Bar */}

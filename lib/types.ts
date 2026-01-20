@@ -8,9 +8,16 @@ export type ThemeType = "midnight-noir" | "rose-gold" | "cyber-blue";
 
 export interface ProposalData {
     partnerName: string;
+    partnerGender?: "female" | "male" | "neutral";
     introMessage?: string; // The "Prologue" poem/intro text
     slides: Slide[];
     theme?: ThemeType;
+    // RSVP Response Fields
+    responseDate?: string;
+    responseTime?: string;
+    responseMessage?: string;
+    // Creator contact
+    creatorEmail?: string;
 }
 
 // Theme filter CSS classes

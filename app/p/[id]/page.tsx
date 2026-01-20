@@ -97,6 +97,7 @@ export default function ProposalPage() {
     return (
         <ProposalViewer
             partnerName={proposal.partner_name}
+            partnerGender={proposal.partner_gender as "female" | "male" | "neutral" | undefined}
             introMessage={proposal.intro_message}
             slides={slides}
             theme={proposal.theme as ThemeType | undefined}

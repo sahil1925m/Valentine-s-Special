@@ -90,9 +90,17 @@ if (typeof window !== 'undefined') {
 export interface ProposalRecord {
     id: string;
     partner_name: string;
+    partner_gender?: string;
     intro_message?: string;
     messages: string[];
     image_urls: string[];
     theme?: string;
     created_at: string;
+    // RSVP Fields
+    response_date?: string;
+    response_time?: string;
+    response_message?: string;
+    // Creator notification
+    creator_email?: string;
+    email_sent?: boolean;
 }

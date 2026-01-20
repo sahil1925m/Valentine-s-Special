@@ -11,10 +11,11 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Slide, ThemeType } from "@/lib/types";
 import { Heart } from "lucide-react";
 import { LoveLetter } from "@/components/LoveLetter";
-import { EnchantedRose } from "@/components/EnchantedRose";
+
 
 interface ProposalViewerProps {
     partnerName: string;
+    partnerGender?: "female" | "male" | "neutral";
     introMessage?: string;
     slides: Slide[];
     theme?: ThemeType;
@@ -29,6 +30,7 @@ export function ProposalViewer(props: ProposalViewerProps) {
 
 function ProposalViewerContent({
     partnerName,
+    partnerGender,
     introMessage,
     slides,
     theme,
@@ -74,9 +76,10 @@ function ProposalViewerContent({
             </div>
 
             {/* Section 3: The Proposal (Enchanted Rose + Question) */}
-            <div className="relative z-[60]">
+            <div className="relative z-[60] mt-48">
                 <ProposalSection
                     partnerName={partnerName}
+                    partnerGender={partnerGender}
                     proposalId={proposalId}
                     images={slides.slice(0, 3).map(s => s.image)}
                     onRestart={() => setUnlocked(false)}

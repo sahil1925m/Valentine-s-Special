@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { motion } from "framer-motion";
-import { Plus, Trash2, Upload, Heart, AlertTriangle, Palette, Eye, Sparkles, Shuffle, User, Image } from "lucide-react";
+import { Plus, Trash2, Upload, Heart, AlertTriangle, Palette, Eye, Sparkles, Shuffle, User, Image, Mail } from "lucide-react";
 import { Slide, ThemeType, themeLabels } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { checkSupabaseConfigured } from "@/lib/supabase";
@@ -30,14 +30,17 @@ interface SlideWithFile extends Slide {
 
 interface PreviewData {
     partnerName: string;
+    partnerGender: "female" | "male" | "neutral";
     introMessage: string;
     slides: Slide[];
     theme: ThemeType;
     files: File[];
+    creatorEmail?: string;
 }
 
 interface CreatorFormProps {
     onPreview: (data: PreviewData) => void;
+    initialData?: PreviewData | null;
 }
 
 // Floating Label Input Component
@@ -95,13 +98,61 @@ const FloatingInput = ({
     );
 };
 
-export function CreatorForm({ onPreview }: CreatorFormProps) {
-    const [partnerName, setPartnerName] = useState("");
-    const [introMessage, setIntroMessage] = useState("");
-    const [slideIdCounter, setSlideIdCounter] = useState(1);
-    const [slides, setSlides] = useState<SlideWithFile[]>([
-        { id: "slide-0", image: "", text: "" },
-    ]);
+export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
+    const [partnerName, setPartnerName] = useState(initialData?.partnerName || "");
+    const [partnerGender, setPartnerGender] = useState<"female" | "male" | "neutral">(initialData?.partnerGender || "female");
+    const [introMessage, setIntroMessage] = useState(initialData?.introMessage || "");
+    const [creatorEmail, setCreatorEmail] = useState(initialData?.creatorEmail || "");
+    const [slideIdCounter, setSlideIdCounter] = useState(initialData?.slides.length || 1);
+    const [slides, setSlides] = useState<SlideWithFile[]>(
+        initialData?.slides.map(s => {
+            // Try to find the original file if available (passed from parent state)
+            const originalFile = initialData.files.find(f => {
+                // Determine logic to match file back to slide if possible
+                // Since we didn't strictly link them by ID in PreviewData, we rely on index order or re-use blobs
+                // Actually, for simplicity in this edit flow, we might just re-use the image URL 
+                // and keep 'file' undefined unless we reconstruct it. 
+                // If 'file' is undefined, logic might break if we try to upload again?
+                // Wait, handleImageUpload sets 'file'. If we edit, we already have URLs.
+                // If we don't change the image, we reuse the URL.
+                return false;
+            });
+            return {
+                ...s,
+                file: undefined // We lose the File object reference usually unless passed explicitly, but PreviewData has files[]
+            };
+        }) || [{ id: "slide-0", image: "", text: "" }]
+    );
+    // Fix: We need to ensure we have the files if we want to re-upload. 
+    // BUT, the existing implementation uploads from 'files'.
+    // If we are editing, we probably still have the Blob URLs valid in memory.
+    // However, for valid upload to Supabase, we need the File objects.
+    // Let's rely on 'initialData.files' which is passed back.
+    // We need to map them back to slides.
+
+    // Better initialization logic:
+    useEffect(() => {
+        if (initialData) {
+            setPartnerName(initialData.partnerName);
+            setPartnerGender(initialData.partnerGender);
+            setIntroMessage(initialData.introMessage);
+            setTheme(initialData.theme);
+
+            // Reconstruct slides with files
+            // Assumes initialData.files matches slides order if 1:1, or we try to map.
+            // In handlePreview: files = slides.map((s) => s.file!).filter(Boolean);
+            // This suggests strict ordering? "filter(Boolean)" breaks 1:1 if some slides have no file?
+            // "invalidSlides" check requires all slides to have image. So 1:1 should hold.
+
+            const rehydratedSlides = initialData.slides.map((s, i) => ({
+                ...s,
+                file: initialData.files[i] // Map back by index
+            }));
+            setSlides(rehydratedSlides);
+            setSlideIdCounter(initialData.slides.length);
+        }
+    }, [initialData]);
+
     const [theme, setTheme] = useState<ThemeType>("rose-gold");
     const [isConfigured, setIsConfigured] = useState<boolean | null>(null);
 
@@ -159,18 +210,24 @@ export function CreatorForm({ onPreview }: CreatorFormProps) {
             alert("Please fill out all slides with an image and text!");
             return;
         }
+        // Validate email if provided
+        if (creatorEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(creatorEmail)) {
+            alert("Please enter a valid email address!");
+            return;
+        }
         if (!isConfigured) {
             console.warn("Supabase not configured. Running in demo mode.");
-            // We allow proceeding to preview, but saving will be blocked later
         }
 
         const files = slides.map((s) => s.file!).filter(Boolean);
         onPreview({
             partnerName,
+            partnerGender,
             introMessage,
             slides: slides.map(({ id, image, text }) => ({ id, image, text })),
             theme,
             files,
+            creatorEmail: creatorEmail.trim() || undefined,
         });
     };
 
@@ -250,14 +307,39 @@ export function CreatorForm({ onPreview }: CreatorFormProps) {
                             </div>
                         )}
 
-                        {/* Partner Name Input */}
-                        <FloatingInput
-                            label="Partner's Name"
-                            value={partnerName}
-                            onChange={setPartnerName}
-                            icon={User}
-                            placeholder="Enter their name..."
-                        />
+                        {/* Partner Name Input & Gender Selection */}
+                        <div className="flex gap-4 items-end">
+                            <div className="grow">
+                                <FloatingInput
+                                    label="Partner's Name"
+                                    value={partnerName}
+                                    onChange={setPartnerName}
+                                    icon={User}
+                                    placeholder="Enter their name..."
+                                />
+                            </div>
+                            <div className="bg-white/5 rounded-xl flex p-1 border border-white/10 shrink-0">
+                                {[
+                                    { value: "female", label: "👩" },
+                                    { value: "male", label: "👨" },
+                                    { value: "neutral", label: "🧑" }
+                                ].map((option) => (
+                                    <button
+                                        key={option.value}
+                                        onClick={() => setPartnerGender(option.value as any)}
+                                        className={cn(
+                                            "w-10 h-10 rounded-lg flex items-center justify-center text-xl transition-all",
+                                            partnerGender === option.value
+                                                ? "bg-pink-500 text-white shadow-lg"
+                                                : "text-white/30 hover:bg-white/10"
+                                        )}
+                                        title={`Partner is ${option.value}`}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
 
                         {/* Intro Message */}
                         <div className="space-y-3">
@@ -384,6 +466,24 @@ export function CreatorForm({ onPreview }: CreatorFormProps) {
                                     <Plus size={16} /> Add 1 Slide
                                 </button>
                             </div>
+                        </div>
+
+                        {/* CREATOR EMAIL NOTIFICATION */}
+                        <div className="space-y-3 p-4 rounded-xl bg-gradient-to-br from-pink-500/5 to-purple-500/5 border border-pink-500/20">
+                            <div className="flex items-center gap-2 text-white/70">
+                                <Mail size={16} className="text-pink-400" />
+                                <span className="text-sm font-medium">Where should we send the &apos;Yes&apos;? 💌</span>
+                            </div>
+                            <input
+                                type="email"
+                                value={creatorEmail}
+                                onChange={(e) => setCreatorEmail(e.target.value)}
+                                placeholder="your.email@example.com"
+                                className="w-full bg-white/5 border border-white/10 focus:border-pink-500/50 rounded-lg px-4 py-3 text-white placeholder:text-white/30 outline-none transition-colors"
+                            />
+                            <p className="text-xs text-white/40">
+                                We&apos;ll send you an instant alert when they reply. Your partner won&apos;t see this.
+                            </p>
                         </div>
 
                         {/* Preview Button with Heartbeat */}

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { PhotoStrip } from "@/components/PhotoStrip";
 import { OpenJournal } from "@/components/OpenJournal";
-import { EnchantedRose } from "@/components/EnchantedRose";
+import { EnchantedGarden } from "@/components/EnchantedGarden";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { cn } from "@/lib/utils";
 
@@ -19,12 +19,15 @@ interface ProposalSectionProps {
     onRestart: () => void;
     proposalId?: string;
     images?: string[]; // For PhotoStrip
+    partnerGender?: "female" | "male" | "neutral";
 }
 
-export function ProposalSection({ partnerName, onRestart, proposalId, images = [] }: ProposalSectionProps) {
+export function ProposalSection({ partnerName, onRestart, proposalId, images = [], partnerGender }: ProposalSectionProps) {
     const [noBtnPosition, setNoBtnPosition] = useState({ x: 0, y: 0 });
     const [accepted, setAccepted] = useState(false);
     const [subtext, setSubtext] = useState(SUBTEXT_DEFAULT);
+
+    const [clickCount, setClickCount] = useState(0);
 
     // Enable heartbeat only when not yet accepted
     const beat = useHeartbeat(!accepted);
@@ -33,10 +36,35 @@ export function ProposalSection({ partnerName, onRestart, proposalId, images = [
         // Change subtext to taunt
         setSubtext(SUBTEXT_ON_HOVER);
 
-        // Generate random position within a reasonable range
-        const x = Math.random() * 300 - 150;
-        const y = Math.random() * 300 - 150;
-        setNoBtnPosition({ x, y });
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+        const nextCount = clickCount + 1;
+        setClickCount(nextCount);
+
+        // Orbital positions relative to initial layout
+        // Mobile: Yes (Top) -> No (Bottom). Orbit around Yes.
+        // Desktop: Yes (Left) -> No (Right). Orbit around Yes.
+        const mobilePositions = [
+            { x: -100, y: 0 },    // Left
+            { x: -70, y: -120 },  // Top Left
+            { x: 70, y: -120 },   // Top Right
+            { x: 100, y: 0 },     // Right
+            { x: 0, y: 0 },       // Back to Start (Bottom)
+        ];
+
+        const desktopPositions = [
+            { x: -100, y: 150 },   // Bottom Center
+            { x: -300, y: 100 },   // Bottom Left
+            { x: -400, y: 0 },     // Left of Yes
+            { x: -300, y: -100 },  // Top Left
+            { x: -100, y: -150 },  // Top Center
+            { x: 0, y: 0 },        // Back to Start
+        ];
+
+        const positions = isMobile ? mobilePositions : desktopPositions;
+        const index = nextCount % positions.length;
+        const pos = positions[index];
+
+        setNoBtnPosition({ x: pos.x, y: pos.y });
 
         // Reset subtext after a moment
         setTimeout(() => setSubtext(SUBTEXT_DEFAULT), 1500);
@@ -81,6 +109,7 @@ export function ProposalSection({ partnerName, onRestart, proposalId, images = [
             <div className="min-h-screen flex flex-col items-center justify-center bg-transparent">
                 <OpenJournal
                     partnerName={partnerName}
+                    partnerGender={partnerGender}
                     images={images}
                     proposalId={proposalId}
                 />
@@ -100,13 +129,8 @@ export function ProposalSection({ partnerName, onRestart, proposalId, images = [
 
     return (
         <div className="relative min-h-screen flex flex-col items-center justify-center text-center p-8 overflow-hidden">
-            {/* Enchanted Rose Reveal Section (Acts as the Proposal Hero) */}
-            <EnchantedRose partnerName={partnerName}>
-
-                {/* Reward: Final Bouquet (Inside the reveal area) */}
-                <div className="mb-4">
-
-                </div>
+            {/* Enchanted Garden Reveal Section (Acts as the Proposal Hero) */}
+            <EnchantedGarden>
 
                 {/* Cheeky Subtext */}
                 <motion.p
@@ -140,7 +164,7 @@ export function ProposalSection({ partnerName, onRestart, proposalId, images = [
                         No 😢
                     </motion.button>
                 </div>
-            </EnchantedRose>
+            </EnchantedGarden>
         </div>
     );
 }
