@@ -28,8 +28,10 @@ const permanentMarker = Permanent_Marker({
 export const metadata: Metadata = {
   title: "Valentine Special",
   description: "A magical experience for your special one",
+  manifest: "/manifest.json",
   icons: {
     icon: "/image/rose.png",
+    apple: "/image/rose.png",
   },
 };
 
