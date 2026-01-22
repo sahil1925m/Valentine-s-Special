@@ -78,9 +78,9 @@ export function OpenJournal({ partnerName, partnerGender = "female", images, pro
             triggerConfetti();
             setTimeout(() => setIsSealed(true), 500);
 
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to seal RSVP:", err);
-            alert("Failed to seal the message. Please try again!");
+            alert(`Failed to seal message: ${err.message || "Unknown error"}`);
         } finally {
             setIsSubmitting(false);
         }
