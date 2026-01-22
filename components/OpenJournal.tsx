@@ -56,28 +56,24 @@ export function OpenJournal({ partnerName, partnerGender = "female", images, pro
         playPaperSound();
 
         try {
-            const { error } = await supabase
-                .from('proposals')
-                .update({
-                    response_date: rsvpDate,
-                    response_time: rsvpTime,
-                    response_message: rsvpMessage
-                })
-                .eq('id', proposalId);
-
-            if (error) throw error;
-
-            // Send Email Notification (Fire & Forget)
-            fetch('/api/notify', {
+            // Call the secure API route instead of direct Supabase update (to bypass RLS)
+            const response = await fetch('/api/respond', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     proposalId,
                     partnerName,
-                    date: `${rsvpDate} at ${rsvpTime}`,
+                    date: rsvpDate,
+                    time: rsvpTime,
                     message: rsvpMessage
                 })
-            }).catch(e => console.error("Email trigger failed", e));
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to respond");
+            }
 
             triggerConfetti();
             setTimeout(() => setIsSealed(true), 500);
