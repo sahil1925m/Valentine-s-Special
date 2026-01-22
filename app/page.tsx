@@ -136,7 +136,7 @@ export default function Home() {
 
     return (
       <>
-        <div className="relative bg-black">
+        <div className="relative" style={{ background: "linear-gradient(to bottom, #4a0018 0%, #050505 100%)" }}>
           {/* Section 1: The Memory String (Scrapbook Theme) */}
           <div className="relative min-h-[100vh]">
             <MemoryString slides={previewData.slides} />
@@ -145,19 +145,23 @@ export default function Home() {
             <FloatingParticles />
           </div>
 
-          {/* Section 2: Love Letter (Interactive Envelope) */}
+          {/* SHARED BACKGROUND WRAPPER for Envelope & Proposal */}
           <div className="relative z-[60]">
-            <LoveLetter poem={previewData.introMessage} partnerName={previewData.partnerName} />
-          </div>
 
-          {/* Section 3: Proposals End Section (Enchanted Rose + Question) */}
-          <div className="relative z-[60] mt-48">
-            <ProposalSection
-              partnerName={previewData.partnerName}
-              partnerGender={previewData.partnerGender}
-              images={previewData.slides.slice(0, 3).map(s => s.image)}
-              onRestart={() => setViewMode("FORM")}
-            />
+            {/* Section 2: Love Letter (Interactive Envelope) */}
+            <div className="pt-24 pb-12">
+              <LoveLetter poem={previewData.introMessage} partnerName={previewData.partnerName} />
+            </div>
+
+            {/* Section 3: Proposals End Section (Enchanted Rose + Question) */}
+            <div className="pb-24">
+              <ProposalSection
+                partnerName={previewData.partnerName}
+                partnerGender={previewData.partnerGender}
+                images={previewData.slides.slice(0, 3).map(s => s.image)}
+                onRestart={() => setViewMode("FORM")}
+              />
+            </div>
           </div>
         </div>
 
@@ -165,7 +169,7 @@ export default function Home() {
         <motion.div
           initial={{ y: 100 }}
           animate={{ y: 0 }}
-          className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-black/80 backdrop-blur-lg border-t border-white/10"
+          className="fixed bottom-0 left-0 right-0 z-[100] p-4 bg-black/80 backdrop-blur-lg border-t border-white/10"
         >
           <div className="max-w-md mx-auto flex gap-3">
             <button

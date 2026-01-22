@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils";
 
 
 // EASY TO CHANGE CONSTANTS
-const SUBTEXT_DEFAULT = "Bet you can't click No 😉";
-const SUBTEXT_ON_HOVER = "Too slow! 🏃‍♂️💨";
+const BUTTON_WIDTH = 150; // Approx
+const BUTTON_HEIGHT = 60;
 
 interface ProposalSectionProps {
     partnerName: string;
@@ -23,51 +23,42 @@ interface ProposalSectionProps {
 }
 
 export function ProposalSection({ partnerName, onRestart, proposalId, images = [], partnerGender }: ProposalSectionProps) {
+    const noBtnRef = React.useRef<HTMLDivElement>(null);
     const [noBtnPosition, setNoBtnPosition] = useState({ x: 0, y: 0 });
     const [accepted, setAccepted] = useState(false);
-    const [subtext, setSubtext] = useState(SUBTEXT_DEFAULT);
-
-    const [clickCount, setClickCount] = useState(0);
 
     // Enable heartbeat only when not yet accepted
     const beat = useHeartbeat(!accepted);
 
     const handleNoHover = () => {
-        // Change subtext to taunt
-        setSubtext(SUBTEXT_ON_HOVER);
+        if (!noBtnRef.current || typeof window === "undefined") return;
 
-        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-        const nextCount = clickCount + 1;
-        setClickCount(nextCount);
+        const wrapper = noBtnRef.current;
+        const button = wrapper.firstElementChild as HTMLElement;
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const btnRect = button?.getBoundingClientRect();
 
-        // Orbital positions relative to initial layout
-        // Mobile: Yes (Top) -> No (Bottom). Orbit around Yes.
-        // Desktop: Yes (Left) -> No (Right). Orbit around Yes.
-        const mobilePositions = [
-            { x: -100, y: 0 },    // Left
-            { x: -70, y: -120 },  // Top Left
-            { x: 70, y: -120 },   // Top Right
-            { x: 100, y: 0 },     // Right
-            { x: 0, y: 0 },       // Back to Start (Bottom)
-        ];
+        // Fallback dimensions if button not found yet
+        const btnWidth = btnRect?.width || 150;
+        const btnHeight = btnRect?.height || 60;
+        const padding = 30; // Safer padding
 
-        const desktopPositions = [
-            { x: -100, y: 150 },   // Bottom Center
-            { x: -300, y: 100 },   // Bottom Left
-            { x: -400, y: 0 },     // Left of Yes
-            { x: -300, y: -100 },  // Top Left
-            { x: -100, y: -150 },  // Top Center
-            { x: 0, y: 0 },        // Back to Start
-        ];
+        // Calculate where the button sits VISUALLY when x=0, y=0 (The "Origin")
+        // Since it's centered in the flex wrapper:
+        const originX = wrapperRect.left + (wrapperRect.width - btnWidth) / 2;
+        const originY = wrapperRect.top + (wrapperRect.height - btnHeight) / 2;
 
-        const positions = isMobile ? mobilePositions : desktopPositions;
-        const index = nextCount % positions.length;
-        const pos = positions[index];
+        // Calculate allowed deltas to keep it on screen
+        const minX = padding - originX;
+        const maxX = (window.innerWidth - padding - btnWidth) - originX;
 
-        setNoBtnPosition({ x: pos.x, y: pos.y });
+        const minY = padding - originY;
+        const maxY = (window.innerHeight - padding - btnHeight) - originY;
 
-        // Reset subtext after a moment
-        setTimeout(() => setSubtext(SUBTEXT_DEFAULT), 1500);
+        const randomX = Math.random() * (maxX - minX) + minX;
+        const randomY = Math.random() * (maxY - minY) + minY;
+
+        setNoBtnPosition({ x: randomX, y: randomY });
     };
 
     const handleYesClick = () => {
@@ -132,37 +123,29 @@ export function ProposalSection({ partnerName, onRestart, proposalId, images = [
             {/* Enchanted Garden Reveal Section (Acts as the Proposal Hero) */}
             <EnchantedGarden>
 
-                {/* Cheeky Subtext */}
-                <motion.p
-                    key={subtext} // Re-animate when text changes
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: [0.7, 1, 0.7] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    className="text-sm md:text-base text-gray-400 italic font-sans mb-4"
-                >
-                    {subtext}
-                </motion.p>
-
-                <div className="flex flex-col md:flex-row gap-8 items-center justify-center pointer-events-auto">
+                {/* Buttons: Yes & No */}
+                <div className="flex flex-col md:flex-row gap-6 items-center justify-center pointer-events-auto mt-4 px-4 w-full">
                     <button
                         onClick={handleYesClick}
                         className={cn(
-                            "px-12 py-4 bg-rose-600 text-white text-xl font-bold rounded-full hover:bg-rose-700 transform transition-all duration-200 shadow-xl",
-                            beat && "scale-110 shadow-rose-500/80 shadow-2xl"
+                            "px-12 py-4 bg-rose-600 text-white text-xl font-bold rounded-full hover:bg-rose-700 transform transition-all duration-200 shadow-xl w-64",
+                            beat && "scale-110 shadow-rose-500/50 shadow-2xl"
                         )}
                     >
-                        YES! 💘
+                        YES! 💖
                     </button>
 
-                    <motion.button
-                        animate={{ x: noBtnPosition.x, y: noBtnPosition.y }}
-                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                        onHoverStart={handleNoHover}
-                        onClick={handleNoHover}
-                        className="px-12 py-4 bg-gray-200 text-gray-500 text-xl font-bold rounded-full cursor-not-allowed relative"
-                    >
-                        No 😢
-                    </motion.button>
+                    <div ref={noBtnRef} className="relative h-[60px] w-64 flex items-center justify-center">
+                        <motion.button
+                            animate={{ x: noBtnPosition.x, y: noBtnPosition.y }}
+                            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                            onHoverStart={handleNoHover}
+                            onClick={handleNoHover} // Just in case mobile user manages to tap
+                            className="px-12 py-4 bg-gray-200 text-gray-500 text-xl font-bold rounded-full cursor-not-allowed whitespace-nowrap"
+                        >
+                            No 😢
+                        </motion.button>
+                    </div>
                 </div>
             </EnchantedGarden>
         </div>

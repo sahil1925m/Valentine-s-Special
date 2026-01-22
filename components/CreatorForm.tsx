@@ -368,30 +368,7 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
                             </div>
                         </div>
 
-                        {/* Theme Selector */}
-                        <div className="space-y-3">
-                            <label className="text-sm text-pink-300 flex items-center gap-2">
-                                <Palette size={14} />
-                                Visual Theme
-                            </label>
-                            <div className="grid grid-cols-3 gap-2">
-                                {(Object.keys(themeLabels) as ThemeType[]).map((t) => (
-                                    <button
-                                        key={t}
-                                        type="button"
-                                        onClick={() => setTheme(t)}
-                                        className={cn(
-                                            "p-3 rounded-xl text-xs font-medium transition-all border",
-                                            theme === t
-                                                ? "bg-pink-500/20 border-pink-500 text-pink-300"
-                                                : "bg-white/5 border-white/10 text-white/50 hover:border-pink-500/50"
-                                        )}
-                                    >
-                                        {themeLabels[t]}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+
 
                         {/* Memory Slides */}
                         <div className="space-y-4">
