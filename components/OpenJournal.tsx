@@ -2,11 +2,12 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, Check, Heart, Sparkles, Send } from "lucide-react";
+import { Download, Check, Heart, Sparkles, Send, Link as LinkIcon, Copy, Phone } from "lucide-react";
 import { toPng } from "html-to-image";
 import { supabase } from "@/lib/supabase";
 import confetti from "canvas-confetti";
 import useSound from "use-sound";
+import { useSearchParams } from "next/navigation";
 
 interface OpenJournalProps {
     partnerName: string;
@@ -28,6 +29,13 @@ export function OpenJournal({ partnerName, partnerGender = "female", images, pro
     const [isSealed, setIsSealed] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // WhatsApp / Link Generator State
+    const searchParams = useSearchParams();
+    const phoneParam = searchParams.get("phone");
+    const [showLinkGen, setShowLinkGen] = useState(false);
+    const [whatsappNum, setWhatsappNum] = useState("");
+    const [copied, setCopied] = useState(false);
+
     const [playPaperSound] = useSound("https://assets.mixkit.co/active_storage/sfx/2402/2402-preview.mp3", { volume: 0.5 });
 
     const heroImage = images[0] || "/placeholder.jpg";
@@ -47,43 +55,80 @@ export function OpenJournal({ partnerName, partnerGender = "female", images, pro
     };
 
     const handleSeal = async () => {
-        if (!proposalId) {
-            console.error("No proposal ID found!");
-            return;
-        }
-
         setIsSubmitting(true);
         playPaperSound();
 
-        try {
-            // Call the secure API route instead of direct Supabase update (to bypass RLS)
-            const response = await fetch('/api/respond', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    proposalId,
-                    partnerName,
-                    date: rsvpDate,
-                    time: rsvpTime,
-                    message: rsvpMessage
-                })
-            });
+        // 1. WhatsApp Redirection (Priority if phone param exists)
+        if (phoneParam) {
+            const msg = `💖 *IT'S A YES!* 💖
+-----------------------
+🗓️ Date: *${rsvpDate || "TBD"}*
+⏰ Time: *${rsvpTime || "TBD"}*
+✨ ✨ ✨
+💌 *Note from her:*
+_${rsvpMessage || "No note"}_
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || "Failed to respond");
-            }
+See you soon! 🚀`;
+            const whatsappUrl = `https://wa.me/${phoneParam}?text=${encodeURIComponent(msg)}`;
 
             triggerConfetti();
-            setTimeout(() => setIsSealed(true), 500);
-
-        } catch (err: any) {
-            console.error("Failed to seal RSVP:", err);
-            alert(`Failed to seal message: ${err.message || "Unknown error"}`);
-        } finally {
-            setIsSubmitting(false);
+            setTimeout(() => {
+                window.location.href = whatsappUrl;
+                setIsSealed(true); // Visually seal it too
+                setIsSubmitting(false);
+            }, 1000);
+            return;
         }
+
+        // 2. Database Fallback (If proposalId exists)
+        if (proposalId) {
+            try {
+                const response = await fetch('/api/respond', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        proposalId,
+                        partnerName,
+                        date: rsvpDate,
+                        time: rsvpTime,
+                        message: rsvpMessage
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to respond");
+                }
+
+                triggerConfetti();
+                setTimeout(() => setIsSealed(true), 500);
+
+            } catch (err: any) {
+                console.error("Failed to seal RSVP:", err);
+                alert(`Failed to seal message: ${err.message || "Unknown error"}`);
+            } finally {
+                setIsSubmitting(false);
+            }
+            return;
+        }
+
+        // 3. Demo Mode (No Phone, No Proposal ID)
+        alert("This is a demo! Create your own link below to test it with WhatsApp.");
+        setIsSubmitting(false);
+    };
+
+    const handleCopyLink = () => {
+        let cleanNum = whatsappNum.replace(/\D/g, "");
+        if (cleanNum.length === 10) {
+            cleanNum = "91" + cleanNum;
+        }
+
+        const baseUrl = window.location.origin + window.location.pathname;
+        const fullUrl = `${baseUrl}?phone=${cleanNum}`;
+        navigator.clipboard.writeText(fullUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
     };
 
     const triggerConfetti = () => {
@@ -303,6 +348,55 @@ export function OpenJournal({ partnerName, partnerGender = "female", images, pro
                     <><Download size={20} /> Save Page to Gallery 📸</>
                 )}
             </motion.button>
+
+            {/* Link Generator Section */}
+            <div className="w-full max-w-md mt-8 border-t border-gray-200 pt-8 text-center">
+                <button
+                    onClick={() => setShowLinkGen(!showLinkGen)}
+                    className="text-gray-400 hover:text-rose-500 text-sm font-medium flex items-center justify-center gap-2 mx-auto transition-colors"
+                >
+                    <LinkIcon size={14} />
+                    {showLinkGen ? "Hide Link Creator" : "Create Your Own WhatsApp Link"}
+                </button>
+
+                <AnimatePresence>
+                    {showLinkGen && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                        >
+                            <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 mt-4 mx-2">
+                                <h4 className="text-gray-800 font-bold mb-2">Generate Your Link 🔗</h4>
+                                <p className="text-xs text-gray-500 mb-4">
+                                    Enter your WhatsApp number (with country code). Responses will be sent directly to you!
+                                </p>
+
+                                <div className="flex gap-2">
+                                    <input
+                                        type="tel"
+                                        placeholder="e.g. 919999999999"
+                                        value={whatsappNum}
+                                        onChange={(e) => setWhatsappNum(e.target.value)}
+                                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-rose-500 focus:outline-none"
+                                    />
+                                    <button
+                                        onClick={handleCopyLink}
+                                        className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-black transition-colors flex items-center gap-2"
+                                    >
+                                        {copied ? <Check size={16} /> : <Copy size={16} />}
+                                        {copied ? "Copied!" : "Copy"}
+                                    </button>
+                                </div>
+                                <div className="mt-2 text-[10px] text-gray-400 text-left">
+                                    *Format: CountryCode + Number (No + or spaces)
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
         </div>
     );
 }

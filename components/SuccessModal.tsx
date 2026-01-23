@@ -8,13 +8,15 @@ import { useState } from "react";
 interface SuccessModalProps {
     proposalId: string;
     onClose: () => void;
+    creatorPhone?: string;
 }
 
-export function SuccessModal({ proposalId, onClose }: SuccessModalProps) {
+export function SuccessModal({ proposalId, onClose, creatorPhone }: SuccessModalProps) {
     const [copied, setCopied] = useState(false);
 
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-    const proposalLink = `${baseUrl}/p/${proposalId}`;
+    const phoneQuery = creatorPhone ? `?phone=${creatorPhone}` : "";
+    const proposalLink = `${baseUrl}/p/${proposalId}${phoneQuery}`;
 
     const handleCopyLink = async () => {
         try {

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { motion } from "framer-motion";
-import { Plus, Trash2, Upload, Heart, AlertTriangle, Palette, Eye, Sparkles, Shuffle, User, Image, Mail } from "lucide-react";
+import { Plus, Trash2, Upload, Heart, AlertTriangle, Palette, Eye, Sparkles, Shuffle, User, Image, Phone } from "lucide-react";
 import { Slide, ThemeType, themeLabels } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { checkSupabaseConfigured } from "@/lib/supabase";
@@ -35,7 +35,7 @@ interface PreviewData {
     slides: Slide[];
     theme: ThemeType;
     files: File[];
-    creatorEmail?: string;
+    creatorPhone?: string;
 }
 
 interface CreatorFormProps {
@@ -102,7 +102,7 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
     const [partnerName, setPartnerName] = useState(initialData?.partnerName || "");
     const [partnerGender, setPartnerGender] = useState<"female" | "male" | "neutral">(initialData?.partnerGender || "female");
     const [introMessage, setIntroMessage] = useState(initialData?.introMessage || "");
-    const [creatorEmail, setCreatorEmail] = useState(initialData?.creatorEmail || "");
+    const [creatorPhone, setCreatorPhone] = useState(initialData?.creatorPhone || "");
     const [slideIdCounter, setSlideIdCounter] = useState(initialData?.slides.length || 1);
     const [slides, setSlides] = useState<SlideWithFile[]>(
         initialData?.slides.map(s => {
@@ -210,11 +210,17 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
             alert("Please fill out all slides with an image and text!");
             return;
         }
-        // Validate email if provided
-        if (creatorEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(creatorEmail)) {
-            alert("Please enter a valid email address!");
-            return;
+        // Validate phone if provided (simple check for digits)
+        let cleanPhone = creatorPhone.replace(/\D/g, "");
+        if (creatorPhone.trim()) {
+            if (cleanPhone.length === 10) {
+                cleanPhone = "91" + cleanPhone;
+            } else if (cleanPhone.length < 10) {
+                alert("Please enter a valid phone number (at least 10 digits)!");
+                return;
+            }
         }
+
         if (!isConfigured) {
             console.warn("Supabase not configured. Running in demo mode.");
         }
@@ -227,7 +233,7 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
             slides: slides.map(({ id, image, text }) => ({ id, image, text })),
             theme,
             files,
-            creatorEmail: creatorEmail.trim() || undefined,
+            creatorPhone: cleanPhone || undefined,
         });
     };
 
@@ -445,21 +451,21 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
                             </div>
                         </div>
 
-                        {/* CREATOR EMAIL NOTIFICATION */}
+                        {/* CREATOR PHONE NOTIFICATION (UPDATED) */}
                         <div className="space-y-3 p-4 rounded-xl bg-gradient-to-br from-pink-500/5 to-purple-500/5 border border-pink-500/20">
                             <div className="flex items-center gap-2 text-white/70">
-                                <Mail size={16} className="text-pink-400" />
-                                <span className="text-sm font-medium">Where should we send the &apos;Yes&apos;? 💌</span>
+                                <Phone size={16} className="text-pink-400" />
+                                <span className="text-sm font-medium">Get the reply on WhatsApp 💬</span>
                             </div>
                             <input
-                                type="email"
-                                value={creatorEmail}
-                                onChange={(e) => setCreatorEmail(e.target.value)}
-                                placeholder="your.email@example.com"
+                                type="tel"
+                                value={creatorPhone}
+                                onChange={(e) => setCreatorPhone(e.target.value)}
+                                placeholder="Your WhatsApp Number (e.g. 919999999999)"
                                 className="w-full bg-white/5 border border-white/10 focus:border-pink-500/50 rounded-lg px-4 py-3 text-white placeholder:text-white/30 outline-none transition-colors"
                             />
                             <p className="text-xs text-white/40">
-                                We&apos;ll send you an instant alert when they reply. Your partner won&apos;t see this.
+                                We&apos;ll auto-generate a magic link. When they reply, it sends directly to your WhatsApp!
                             </p>
                         </div>
 

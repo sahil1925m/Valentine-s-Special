@@ -25,7 +25,7 @@ interface PreviewData {
   slides: Slide[];
   theme: ThemeType;
   files: File[];
-  creatorEmail?: string;
+  creatorPhone?: string;
 }
 
 export default function Home() {
@@ -87,7 +87,10 @@ export default function Home() {
         messages,
         image_urls: imageUrls,
         theme: previewData.theme,
-        creator_email: previewData.creatorEmail || null,
+        // We don't store creator phone in DB for privacy/spam reasons, 
+        // OR we could add a column if needed. 
+        // For now, we just pass it to the success modal to generate the link.
+        // creator_email: previewData.creatorEmail || null, 
       });
 
       if (error) {
@@ -123,7 +126,11 @@ export default function Home() {
   if (viewMode === "SUCCESS" && createdProposalId) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-rose-100 flex items-center justify-center">
-        <SuccessModal proposalId={createdProposalId} onClose={handleReset} />
+        <SuccessModal
+          proposalId={createdProposalId}
+          onClose={handleReset}
+          creatorPhone={previewData?.creatorPhone}
+        />
       </main>
     );
   }
