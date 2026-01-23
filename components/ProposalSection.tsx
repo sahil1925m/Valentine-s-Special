@@ -43,10 +43,13 @@ export function ProposalSection({ partnerName, onRestart, proposalId, images = [
         const btnHeight = btnRect?.height || 60;
 
         // Use visualViewport for more accurate available screen space on mobile
+        // BUT also subtract a safety buffer for browser bottom bars/Vercel toolbar
         const viewportWidth = window.visualViewport?.width || window.innerWidth;
         const viewportHeight = window.visualViewport?.height || window.innerHeight;
 
-        const padding = 60; // Increased padding to prevent edge clipping (safe area)
+        // Aggressive padding to handle mobile bottom bars, address bars, and Vercel toolbar
+        const padding = 20;
+        const bottomSafety = 150; // Much larger safety margin for the bottom specifically
 
         // Calculate where the button sits VISUALLY when x=0, y=0 (The "Origin")
         // Since it's centered in the flex wrapper:
@@ -58,10 +61,19 @@ export function ProposalSection({ partnerName, onRestart, proposalId, images = [
         const maxX = (viewportWidth - padding - btnWidth) - originX;
 
         const minY = padding - originY;
-        const maxY = (viewportHeight - padding - btnHeight) - originY;
 
-        const randomX = Math.random() * (maxX - minX) + minX;
-        const randomY = Math.random() * (maxY - minY) + minY;
+        // Subtract bottomSafety to ensure it never goes near the Vercel toolbar or bottom nav
+        const maxY = (viewportHeight - bottomSafety - btnHeight) - originY;
+
+        // Ensure min is not greater than max (collision/overlap case)
+        const safeMaxX = Math.max(minX, maxX);
+        const safeMaxY = Math.max(minY, maxY);
+
+        const randomX = Math.random() * (safeMaxX - minX) + minX;
+
+        // Ensure randomY doesn't force it upwards too high if it's already near top, 
+        // but primarily we just want to clamp the bottom.
+        const randomY = Math.random() * (safeMaxY - minY) + minY;
 
         setNoBtnPosition({ x: randomX, y: randomY });
     };
