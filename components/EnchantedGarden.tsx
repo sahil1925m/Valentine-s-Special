@@ -68,54 +68,59 @@ export function EnchantedGarden({ children }: EnchantedGardenProps) {
                             animate={{ opacity: 1 }}
                             className="flex flex-col items-center w-full"
                         >
-                            {/* Rose Animation: Floating Up */}
+                            {/* Rose Animation: Floating Up with smooth consistent speed */}
                             <motion.div
-                                initial={{ y: 300, opacity: 0, scale: 0.5 }}
-                                animate={{ y: 0, opacity: 1, scale: 1 }}
+                                initial={{ y: 250 }}
+                                animate={{ y: 0 }}
                                 transition={{
-                                    type: "spring",
-                                    stiffness: 20,
-                                    damping: 20,
-                                    mass: 2,
-                                    delay: 0.2
+                                    type: "tween",
+                                    ease: [0.25, 0.1, 0.25, 1],
+                                    duration: 2
                                 }}
                                 className="mb-8 relative"
+                                style={{ willChange: "transform" }}
                             >
-                                <img
-                                    src="/image/rose.png"
-                                    alt="Rose"
-                                    className="w-full max-w-[280px] md:max-w-[380px] h-auto drop-shadow-[0_0_25px_rgba(255,100,100,0.6)]"
-                                />
+                                {/* Glow wrapper - separate from transform to avoid filter glitch */}
+                                <div className="drop-shadow-[0_0_25px_rgba(255,100,100,0.6)]">
+                                    <img
+                                        src="/image/rose.png"
+                                        alt="Rose"
+                                        className="w-full max-w-[280px] md:max-w-[380px] h-auto"
+                                    />
+                                </div>
                             </motion.div>
 
-                            {/* Typewriter Text Section */}
-                            {showText && (
-                                <div className="text-center space-y-6 w-full">
-                                    <div className="min-h-[4rem]">
-                                        <p className="text-lg md:text-xl text-rose-200/80 font-medium font-serif mb-2">
-                                            For the one who makes life beautiful...
-                                        </p>
-                                        <motion.h2
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 1.5, duration: 1 }}
-                                            className="text-3xl md:text-5xl font-bold text-white font-serif drop-shadow-lg"
-                                        >
-                                            Will you be my Valentine?
-                                        </motion.h2>
-                                    </div>
-
-                                    {/* Reveal Children (Yes/No buttons) */}
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 2.5, duration: 0.8 }}
-                                        className="pt-4"
+                            {/* Text Section - Always rendered, opacity controlled to prevent layout shift */}
+                            <motion.div
+                                className="text-center space-y-6 w-full"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: showText ? 1 : 0 }}
+                                transition={{ duration: 0.8 }}
+                            >
+                                <div className="min-h-[4rem]">
+                                    <p className="text-lg md:text-xl text-rose-200/80 font-medium font-serif mb-2">
+                                        For the one who makes life beautiful...
+                                    </p>
+                                    <motion.h2
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: showText ? 1 : 0, y: showText ? 0 : 10 }}
+                                        transition={{ delay: showText ? 1.5 : 0, duration: 1 }}
+                                        className="text-3xl md:text-5xl font-bold text-white font-serif drop-shadow-lg"
                                     >
-                                        {children}
-                                    </motion.div>
+                                        Will you be my Valentine?
+                                    </motion.h2>
                                 </div>
-                            )}
+
+                                {/* Reveal Children (Yes/No buttons) */}
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: showText ? 1 : 0, y: showText ? 0 : 20 }}
+                                    transition={{ delay: showText ? 2.5 : 0, duration: 0.8 }}
+                                    className="pt-4"
+                                >
+                                    {children}
+                                </motion.div>
+                            </motion.div>
                         </motion.div>
                     )}
                 </AnimatePresence>
