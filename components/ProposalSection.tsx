@@ -41,7 +41,12 @@ export function ProposalSection({ partnerName, onRestart, proposalId, images = [
         // Fallback dimensions if button not found yet
         const btnWidth = btnRect?.width || 150;
         const btnHeight = btnRect?.height || 60;
-        const padding = 30; // Safer padding
+
+        // Use visualViewport for more accurate available screen space on mobile
+        const viewportWidth = window.visualViewport?.width || window.innerWidth;
+        const viewportHeight = window.visualViewport?.height || window.innerHeight;
+
+        const padding = 60; // Increased padding to prevent edge clipping (safe area)
 
         // Calculate where the button sits VISUALLY when x=0, y=0 (The "Origin")
         // Since it's centered in the flex wrapper:
@@ -50,10 +55,10 @@ export function ProposalSection({ partnerName, onRestart, proposalId, images = [
 
         // Calculate allowed deltas to keep it on screen
         const minX = padding - originX;
-        const maxX = (window.innerWidth - padding - btnWidth) - originX;
+        const maxX = (viewportWidth - padding - btnWidth) - originX;
 
         const minY = padding - originY;
-        const maxY = (window.innerHeight - padding - btnHeight) - originY;
+        const maxY = (viewportHeight - padding - btnHeight) - originY;
 
         const randomX = Math.random() * (maxX - minX) + minX;
         const randomY = Math.random() * (maxY - minY) + minY;
@@ -120,6 +125,14 @@ export function ProposalSection({ partnerName, onRestart, proposalId, images = [
 
     return (
         <div className="relative min-h-screen flex flex-col items-center justify-center text-center p-8 overflow-hidden">
+            {/* Heartbeat Border Glow */}
+            <div
+                className={cn(
+                    "fixed inset-0 pointer-events-none z-[40] transition-all duration-300 ease-in-out",
+                    beat ? "shadow-[inset_0_0_100px_rgba(244,63,94,0.6)]" : "shadow-[inset_0_0_20px_rgba(244,63,94,0)]"
+                )}
+            />
+
             {/* Enchanted Garden Reveal Section (Acts as the Proposal Hero) */}
             <EnchantedGarden>
 
