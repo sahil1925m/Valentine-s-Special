@@ -3,7 +3,6 @@
 import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { Preloader } from "@/components/Preloader";
-import { PoetryHero } from "@/components/PoetryHero";
 import { MemoryString } from "@/components/MemoryString";
 import { FloatingParticles } from "@/components/FloatingParticles";
 import { ProposalSection } from "@/components/ProposalSection";
