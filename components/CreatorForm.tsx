@@ -166,6 +166,11 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
     const handleImageUpload = (id: string, e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            // Check file size (limit to 5MB to prevent crashes on mobile)
+            if (file.size > 5 * 1024 * 1024) {
+                alert("File is too large! Please choose an image under 5MB.");
+                return;
+            }
             const url = URL.createObjectURL(file);
             setSlides((prev) =>
                 prev.map((slide) =>
@@ -241,7 +246,18 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
         const files = Array.from(e.target.files || []);
         if (files.length === 0) return;
 
-        const newSlides = files.map((file, index) => ({
+        // Filter out files that are too large (5MB limit)
+        const validFiles = files.filter(file => {
+            if (file.size > 5 * 1024 * 1024) {
+                alert(`"${file.name}" is too large (over 5MB) and was skipped.`);
+                return false;
+            }
+            return true;
+        });
+
+        if (validFiles.length === 0) return;
+
+        const newSlides = validFiles.map((file, index) => ({
             id: `slide-${Date.now()}-${index}`,
             image: URL.createObjectURL(file),
             text: "",
@@ -411,7 +427,7 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
                                             )}
                                             <input
                                                 type="file"
-                                                accept="image/*"
+                                                accept="image/png, image/jpeg, image/jpg, image/webp"
                                                 className="hidden"
                                                 onChange={(e) => handleImageUpload(slide.id, e)}
                                             />
@@ -436,7 +452,7 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
                                     <Upload size={16} /> Bulk Upload
                                     <input
                                         type="file"
-                                        accept="image/*"
+                                        accept="image/png, image/jpeg, image/jpg, image/webp"
                                         multiple
                                         className="hidden"
                                         onChange={handleBulkUpload}
