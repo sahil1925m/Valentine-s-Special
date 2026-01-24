@@ -53,7 +53,7 @@ function ProposalViewerContent({
     const poem = introMessage || `Every moment with you is a memory I treasure forever...`;
 
     return (
-        <div className="relative">
+        <div className="relative min-h-screen bg-black">
             {/* GLOBAL Romantic Background - Fixed, spans entire experience */}
             <AnimatedBackground />
 

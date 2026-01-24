@@ -141,8 +141,9 @@ export function ProposalSection({ partnerName, onRestart, proposalId, images = [
             <div
                 className={cn(
                     "fixed inset-0 pointer-events-none z-[40] transition-all duration-300 ease-in-out",
-                    beat ? "shadow-[inset_0_0_100px_rgba(244,63,94,0.6)]" : "shadow-[inset_0_0_20px_rgba(244,63,94,0)]"
+                    beat ? "shadow-[inset_0_0_80px_40px_rgba(244,63,94,0.4)]" : "shadow-none"
                 )}
+                style={{ background: "transparent" }}
             />
 
             {/* Enchanted Garden Reveal Section (Acts as the Proposal Hero) */}

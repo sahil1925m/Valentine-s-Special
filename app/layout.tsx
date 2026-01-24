@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Caveat, Permanent_Marker } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -41,11 +42,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ background: "#0a0612" }}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${caveat.variable} ${permanentMarker.variable} antialiased`}
       >
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );

@@ -14,7 +14,7 @@ export function AnimatedBackground() {
   if (!mounted) return null;
 
   return (
-    <div className="fixed inset-0 z-[-10] overflow-hidden">
+    <div className="fixed -inset-1 z-[-10] overflow-hidden">
       <style jsx>{`
         @keyframes aurora-shift {
           0%, 100% {
