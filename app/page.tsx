@@ -43,6 +43,12 @@ export default function Home() {
     setPreloaderUnlocked(false);
   };
 
+  // Handle direct link creation from form (skips preview)
+  const handleDirectCreateLink = (data: PreviewData) => {
+    setPreviewData(data);
+    setShowSocialModal(true);
+  };
+
   // Handle social unlock and upload
   const handleCreateLink = async () => {
     if (!previewData || !isSupabaseConfigured()) {
@@ -119,7 +125,19 @@ export default function Home() {
 
   // FORM MODE
   if (viewMode === "FORM") {
-    return <CreatorForm onPreview={handlePreview} initialData={previewData} />;
+    return (
+      <>
+        <CreatorForm onPreview={handlePreview} onCreateLink={handleDirectCreateLink} initialData={previewData} />
+
+        {/* Social Unlock Modal (for direct link creation from form) */}
+        <SocialUnlockModal
+          isOpen={showSocialModal}
+          onClose={() => setShowSocialModal(false)}
+          onUnlock={handleCreateLink}
+          isUploading={isUploading}
+        />
+      </>
+    );
   }
 
   // SUCCESS MODE

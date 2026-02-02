@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, ChangeEvent } from "react";
 import { motion } from "framer-motion";
-import { Plus, Trash2, Upload, Heart, AlertTriangle, Palette, Eye, Sparkles, Shuffle, User, Image, Phone } from "lucide-react";
+import { Plus, Trash2, Upload, Heart, AlertTriangle, Palette, Eye, Sparkles, Shuffle, User, Image, Phone, Rocket } from "lucide-react";
 import { Slide, ThemeType, themeLabels } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { checkSupabaseConfigured } from "@/lib/supabase";
@@ -40,6 +40,7 @@ interface PreviewData {
 
 interface CreatorFormProps {
     onPreview: (data: PreviewData) => void;
+    onCreateLink: (data: PreviewData) => void;
     initialData?: PreviewData | null;
 }
 
@@ -98,7 +99,7 @@ const FloatingInput = ({
     );
 };
 
-export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
+export function CreatorForm({ onPreview, onCreateLink, initialData }: CreatorFormProps) {
     const [partnerName, setPartnerName] = useState(initialData?.partnerName || "");
     const [partnerGender, setPartnerGender] = useState<"female" | "male" | "neutral">(initialData?.partnerGender || "female");
     const [introMessage, setIntroMessage] = useState(initialData?.introMessage || "");
@@ -201,19 +202,19 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
         }
     };
 
-    const handlePreview = () => {
+    const validateForm = (): { valid: boolean; cleanPhone?: string } => {
         if (!partnerName.trim()) {
             alert("Please enter your partner's name!");
-            return;
+            return { valid: false };
         }
         if (!introMessage.trim()) {
             alert("Please write an intro message!");
-            return;
+            return { valid: false };
         }
         const invalidSlides = slides.some((s) => !s.image || !s.text);
         if (invalidSlides) {
             alert("Please fill out all slides with an image and text!");
-            return;
+            return { valid: false };
         }
         // Validate phone if provided (simple check for digits)
         let cleanPhone = creatorPhone.replace(/\D/g, "");
@@ -222,9 +223,15 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
                 cleanPhone = "91" + cleanPhone;
             } else if (cleanPhone.length < 10) {
                 alert("Please enter a valid phone number (at least 10 digits)!");
-                return;
+                return { valid: false };
             }
         }
+        return { valid: true, cleanPhone: cleanPhone || undefined };
+    };
+
+    const handlePreview = () => {
+        const validation = validateForm();
+        if (!validation.valid) return;
 
         if (!isConfigured) {
             console.warn("Supabase not configured. Running in demo mode.");
@@ -238,7 +245,28 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
             slides: slides.map(({ id, image, text }) => ({ id, image, text })),
             theme,
             files,
-            creatorPhone: cleanPhone || undefined,
+            creatorPhone: validation.cleanPhone,
+        });
+    };
+
+    const handleCreateLink = () => {
+        const validation = validateForm();
+        if (!validation.valid) return;
+
+        if (!isConfigured) {
+            alert("⚠️ Demo Mode Active: Cannot save proposal because Supabase is not configured.");
+            return;
+        }
+
+        const files = slides.map((s) => s.file!).filter(Boolean);
+        onCreateLink({
+            partnerName,
+            partnerGender,
+            introMessage,
+            slides: slides.map(({ id, image, text }) => ({ id, image, text })),
+            theme,
+            files,
+            creatorPhone: validation.cleanPhone,
         });
     };
 
@@ -485,18 +513,29 @@ export function CreatorForm({ onPreview, initialData }: CreatorFormProps) {
                             </p>
                         </div>
 
-                        {/* Preview Button with Heartbeat */}
-                        <motion.button
-                            onClick={handlePreview}
-                            animate={{ scale: [1, 1.02, 1] }}
-                            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                            whileHover={{ scale: 1.03 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="w-full py-4 bg-gradient-to-r from-pink-600 via-rose-500 to-purple-600 text-white rounded-xl font-bold text-lg shadow-[0_0_30px_rgba(236,72,153,0.4)] hover:shadow-[0_0_50px_rgba(236,72,153,0.6)] transition-shadow flex items-center justify-center gap-2"
-                        >
-                            <Eye size={20} />
-                            Preview Proposal
-                        </motion.button>
+                        {/* Action Buttons: Preview & Create Link */}
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <motion.button
+                                onClick={handlePreview}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="flex-1 py-4 bg-white/10 border-2 border-pink-500/30 text-white rounded-xl font-bold text-lg hover:bg-white/20 hover:border-pink-500/50 transition-all flex items-center justify-center gap-2"
+                            >
+                                <Eye size={20} />
+                                Preview
+                            </motion.button>
+                            <motion.button
+                                onClick={handleCreateLink}
+                                animate={{ scale: [1, 1.02, 1] }}
+                                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                                whileHover={{ scale: 1.03 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="flex-1 py-4 bg-gradient-to-r from-pink-600 via-rose-500 to-purple-600 text-white rounded-xl font-bold text-lg shadow-[0_0_30px_rgba(236,72,153,0.4)] hover:shadow-[0_0_50px_rgba(236,72,153,0.6)] transition-shadow flex items-center justify-center gap-2"
+                            >
+                                <Rocket size={20} />
+                                Create Link
+                            </motion.button>
+                        </div>
                     </div>
                 </motion.div>
             </div>
